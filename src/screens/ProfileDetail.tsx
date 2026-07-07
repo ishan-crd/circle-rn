@@ -2,9 +2,12 @@
 // Mirrors coterie-ios/Circle/Views/Sheets/ProfileDetailView.swift.
 
 import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, Pressed, ProfilePhoto, TagPill } from '../components/ui';
 import { useStore, sharedInterests } from '../store';
@@ -14,89 +17,112 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const member = s.knownMembers[memberId];
+
+  const close = () => s.closeSheet();
+  const pass = () => { s.passMember(memberId); close(); };
+  const like = () => { if (s.likesRemaining === 0) return; s.likeMember(memberId); close(); };
+
+  // Swipe-right-to-go-back (like the native back gesture), only on this page.
+  const tx = useSharedValue(0);
+  const swipe = Gesture.Pan()
+    .activeOffsetX(20)          // only claim clearly-horizontal swipes; vertical scroll still works
+    .failOffsetY([-14, 14])
+    .onUpdate((e) => { tx.value = Math.max(0, e.translationX); })
+    .onEnd((e) => {
+      if (e.translationX > 120 || e.velocityX > 800) {
+        tx.value = withTiming(width, { duration: 200 }, (done) => { if (done) runOnJS(close)(); });
+      } else {
+        tx.value = withSpring(0, { damping: 20 });
+      }
+    });
+  const pageStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+
   if (!member) return <View style={{ flex: 1, backgroundColor: C.paper }} />;
 
   const shared = sharedInterests(s, member);
   const disabled = s.likesRemaining === 0;
 
-  const pass = () => { s.passMember(memberId); s.closeSheet(); };
-  const like = () => { if (disabled) return; s.likeMember(memberId); s.closeSheet(); };
-
   return (
-    <View style={{ flex: 1, backgroundColor: C.paper }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
-        {/* Hero */}
-        <View style={styles.hero}>
-          <ProfilePhoto uri={s.memberPhotos[memberId]?.[0]} seed={member.portrait} style={StyleSheet.absoluteFill} />
-          <LinearGradient
-            colors={['rgba(0,0,0,0.18)', 'transparent', 'transparent', 'rgba(0,0,0,0.6)']}
-            locations={[0, 0.35, 0.62, 1]}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={styles.heroBody}>
-            <View style={styles.nameRow}>
-              <Text style={[serif(48), { color: '#fff' }]}>{member.name}</Text>
-              <Text style={[serif(26), { color: 'rgba(255,255,255,0.8)' }]}>{member.age}</Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureDetector gesture={swipe}>
+        <Animated.View style={[{ flex: 1, backgroundColor: C.paper }, pageStyle]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+            {/* Hero */}
+            <View style={styles.hero}>
+              <ProfilePhoto uri={s.memberPhotos[memberId]?.[0]} seed={member.portrait} style={StyleSheet.absoluteFill} />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.18)', 'transparent', 'transparent', 'rgba(0,0,0,0.6)']}
+                locations={[0, 0.35, 0.62, 1]}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.heroBody}>
+                <View style={styles.nameRow}>
+                  <Text style={[serif(48), { color: '#fff' }]}>{member.name}</Text>
+                  <Text style={[serif(26), { color: 'rgba(255,255,255,0.8)' }]}>{member.age}</Text>
+                </View>
+                <Text style={styles.role}>
+                  {member.role} · {member.city}
+                </Text>
+              </View>
+              <Pressed
+                scale={0.92}
+                onPress={close}
+                style={[styles.closeBtn, { top: insets.top + 12 }]}
+              >
+                <Ionicons name="chevron-back" size={22} color="#fff" />
+              </Pressed>
             </View>
-            <Text style={styles.role}>
-              {member.role} · {member.city}
-            </Text>
+
+            {/* Details */}
+            <View style={styles.details}>
+              {!!member.bio && (
+                <Text style={[serif(23), { color: C.ink80, lineHeight: 30 }]}>{member.bio}</Text>
+              )}
+
+              {shared.length > 0 && (
+                <Block title="Shared interests" first={!member.bio}>
+                  <View style={styles.tags}>
+                    {shared.map((t) => <TagPill key={t} text={t} />)}
+                  </View>
+                </Block>
+              )}
+
+              {member.prompts.map((pr) => (
+                <Block key={pr.id} title={pr.q}>
+                  <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{pr.a}”</Text>
+                </Block>
+              ))}
+
+              {member.interests.length > 0 && (
+                <Block title="Interests">
+                  <View style={styles.tags}>
+                    {member.interests.map((t) => <TagPill key={t} text={t} />)}
+                  </View>
+                </Block>
+              )}
+            </View>
+          </ScrollView>
+
+          {/* Action bar */}
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
+            <Pressed scale={0.94} onPress={pass} style={styles.passCircle}>
+              <Ionicons name="close" size={26} color={C.ink70} />
+            </Pressed>
+            <Pressed
+              scale={0.97}
+              onPress={like}
+              disabled={disabled}
+              style={[styles.sayHi, { opacity: disabled ? 0.4 : 1 }]}
+            >
+              <Ionicons name="heart" size={18} color={C.accentInk} />
+              <Text style={[grotesk(15, 'semibold'), { color: C.accentInk, letterSpacing: 0.5 }]}>Say Hi</Text>
+            </Pressed>
           </View>
-          <Pressed
-            scale={0.92}
-            onPress={() => s.closeSheet()}
-            style={[styles.closeBtn, { top: insets.top + 12 }]}
-          >
-            <Text style={{ fontSize: 18, color: '#fff', fontWeight: '600' }}>✕</Text>
-          </Pressed>
-        </View>
-
-        {/* Details */}
-        <View style={styles.details}>
-          {!!member.bio && (
-            <Text style={[serif(23), { color: C.ink80, lineHeight: 30 }]}>{member.bio}</Text>
-          )}
-
-          {shared.length > 0 && (
-            <Block title="Shared interests" first={!member.bio}>
-              <View style={styles.tags}>
-                {shared.map((t) => <TagPill key={t} text={t} />)}
-              </View>
-            </Block>
-          )}
-
-          {member.prompts.map((pr) => (
-            <Block key={pr.id} title={pr.q}>
-              <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{pr.a}”</Text>
-            </Block>
-          ))}
-
-          {member.interests.length > 0 && (
-            <Block title="Interests">
-              <View style={styles.tags}>
-                {member.interests.map((t) => <TagPill key={t} text={t} />)}
-              </View>
-            </Block>
-          )}
-        </View>
-      </ScrollView>
-
-      {/* Action bar */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
-        <Pressed scale={0.96} onPress={pass} style={[styles.action, styles.actionOutline]}>
-          <Text style={[styles.actionLabel, { color: C.ink }]}>PASS</Text>
-        </Pressed>
-        <Pressed
-          scale={0.96}
-          onPress={like}
-          disabled={disabled}
-          style={[styles.action, styles.actionFilled, { flex: 1, opacity: disabled ? 0.4 : 1 }]}
-        >
-          <Text style={[styles.actionLabel, { color: C.accentInk }]}>SAY HI</Text>
-        </Pressed>
-      </View>
-    </View>
+        </Animated.View>
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 
@@ -145,20 +171,22 @@ const makeStyles = (C: Palette) => StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    gap: 14,
     paddingHorizontal: 24,
     paddingTop: 14,
     backgroundColor: C.paper,
     borderTopWidth: 1,
     borderTopColor: C.hairline,
   },
-  action: {
-    paddingVertical: 16,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
+  passCircle: {
+    width: 62, height: 62, borderRadius: 31,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong,
   },
-  actionOutline: { paddingHorizontal: 34, borderWidth: 1, borderColor: C.borderStrong, backgroundColor: C.paper },
-  actionFilled: { backgroundColor: C.accent },
-  actionLabel: { ...grotesk(12), letterSpacing: 2, textTransform: 'uppercase' },
+  sayHi: {
+    flex: 1, height: 62, borderRadius: 31,
+    backgroundColor: C.accent,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
 });

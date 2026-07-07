@@ -419,9 +419,11 @@ export const useStore = create<Store>((set, get) => ({
 
   // ---- explore ----
   passMember(id) {
-    set({ passedIDs: [...get().passedIDs, id] });
-    const uuid = id;
-    Service.actOnProfile(uuid, 'pass').catch(() => {});
+    set({
+      passedIDs: [...get().passedIDs, id],
+      invitations: get().invitations.filter((i) => i.id !== id),
+    });
+    Service.actOnProfile(id, 'pass').catch(() => {});
   },
   beginLike(id) {
     if (get().likesRemaining <= 0 || get().likedIDs.includes(id)) return;
@@ -437,7 +439,12 @@ export const useStore = create<Store>((set, get) => ({
   },
   likeMember(id, note = '') {
     if (get().likesRemaining <= 0 || get().likedIDs.includes(id)) return;
-    set({ likedIDs: [...get().likedIDs, id], likesRemaining: get().likesRemaining - 1 });
+    set({
+      likedIDs: [...get().likedIDs, id],
+      likesRemaining: get().likesRemaining - 1,
+      // Acting on someone who liked you clears them from Invites.
+      invitations: get().invitations.filter((i) => i.id !== id),
+    });
     const greeting = note.length ? note : null;
     Service.actOnProfile(id, 'like', greeting).then(async (result) => {
       set({ likesRemaining: result.likes_remaining });

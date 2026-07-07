@@ -42,7 +42,7 @@ export function Chat({ memberId }: { memberId: string }) {
           <Text style={{ fontFamily: 'System', fontSize: 26, color: C.ink, marginTop: -2 }}>‹</Text>
         </Pressed>
         {member && (
-          <>
+          <Pressed scale={0.98} onPress={() => s.openProfile(memberId)} style={styles.headerTap}>
             <ProfilePhoto
               uri={s.memberPhotos[memberId]?.[0]}
               seed={member.portrait}
@@ -54,7 +54,7 @@ export function Chat({ memberId }: { memberId: string }) {
                 {member.role} · {member.city}
               </Text>
             </View>
-          </>
+          </Pressed>
         )}
       </View>
 
@@ -123,6 +123,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
     borderBottomColor: C.hairline,
   },
   backBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  headerTap: { flexDirection: 'row', alignItems: 'center', gap: 13 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.photoEmpty },
   role: {
     ...grotesk(10),
