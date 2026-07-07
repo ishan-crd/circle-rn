@@ -40,7 +40,13 @@
           "photosPermission": "Circle uses your photos so you can add them to your profile."
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#E0674A"
+        }
+      ]
     ],
     "extra": {
       "eas": {

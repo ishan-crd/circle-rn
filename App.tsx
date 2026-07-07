@@ -9,6 +9,7 @@ import { fontsToLoad, ThemeProvider, useTheme, useAppearance } from './src/theme
 import { useStore } from './src/store';
 import { RootView } from './src/RootView';
 import { AnimatedSplash } from './src/components/AnimatedSplash';
+import { setupNotifications } from './src/lib/notifications';
 
 function Root() {
   const C = useTheme();
@@ -18,6 +19,7 @@ function Root() {
   const bootstrap = useStore((s) => s.bootstrap);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
+  useEffect(() => setupNotifications(), []);
 
   return (
     <>

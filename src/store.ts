@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { supabase } from './lib/supabase';
 import { Service, FeedRow, ProfileRow } from './lib/service';
 import { INTERESTS, PROMPTS, promptText, seedFor, slugify } from './data';
@@ -535,11 +536,16 @@ export const useStore = create<Store>((set, get) => ({
   async syncPushRegistration() {
     if (!get().notifications) return;
     try {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status === 'granted') {
-        const token = (await Notifications.getDevicePushTokenAsync()).data as string;
-        get().registerPushToken(token);
-      }
+      const existing = await Notifications.getPermissionsAsync();
+      let status = existing.status;
+      if (status !== 'granted') status = (await Notifications.requestPermissionsAsync()).status;
+      if (status !== 'granted') return;
+      // Expo push token — Expo delivers to APNs/FCM using the EAS credentials.
+      const projectId =
+        (Constants?.expoConfig?.extra as any)?.eas?.projectId
+        ?? (Constants as any)?.easConfig?.projectId;
+      const token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
+      get().registerPushToken(token);
     } catch {}
   },
   registerPushToken(token) {
