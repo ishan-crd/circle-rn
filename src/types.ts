@@ -105,7 +105,9 @@ export function ageFrom(p: UserProfile): number | null {
 }
 
 export function birthdayIssue(p: UserProfile): string | null {
-  if (!p.dobM && !p.dobD && p.dobY.length === 0) return null;
+  // Stay quiet until the user has finished typing the 4-digit year, so the
+  // error doesn't flash while a valid date is still being entered.
+  if (p.dobY.length < 4) return null;
   const age = ageFrom(p);
   if (age === null) return 'Enter a valid date.';
   if (age < MIN_AGE) return `You must be at least ${MIN_AGE}.`;
