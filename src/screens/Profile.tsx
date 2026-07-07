@@ -1,7 +1,7 @@
 // Own profile + settings — mirrors ProfileView.swift.
 
 import React from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, eyebrow, useTheme, useAppearance, type Palette } from '../theme';
@@ -20,6 +20,7 @@ export function Profile() {
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const s = useStore();
+  const [busy, setBusy] = React.useState<'logout' | 'delete' | null>(null);
   const p = s.profile;
   const age = ageFrom(p);
   const meta = [p.work, p.city, p.pronouns].filter(Boolean).join(' · ') || 'Add your details';
@@ -90,22 +91,28 @@ export function Profile() {
       </View>
 
       <View style={{ marginTop: 30 }}>
-        <PillButton title="Log Out" style="outline" onPress={s.logout} />
+        <PillButton title="Log Out" style="outline" loading={busy === 'logout'} enabled={busy === null}
+          onPress={async () => { setBusy('logout'); await s.logout(); }} />
       </View>
 
       <Pressable
-        style={{ paddingVertical: 12, marginTop: 8, alignItems: 'center' }}
+        disabled={busy !== null}
+        style={{ paddingVertical: 12, marginTop: 8, alignItems: 'center', minHeight: 40, justifyContent: 'center' }}
         onPress={() =>
           Alert.alert(
             'Delete your account?',
             'This permanently clears your profile, photos, prompts and interests. You can sign back in anytime to start over.',
             [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Delete Account', style: 'destructive', onPress: s.deleteAccount },
+              { text: 'Delete Account', style: 'destructive', onPress: async () => { setBusy('delete'); await s.deleteAccount(); } },
             ],
           )
         }>
-        <Text style={[grotesk(13, 'medium'), { color: C.accent }]}>Delete Account</Text>
+        {busy === 'delete' ? (
+          <ActivityIndicator size="small" color={C.accent} />
+        ) : (
+          <Text style={[grotesk(13, 'medium'), { color: C.accent }]}>Delete Account</Text>
+        )}
       </Pressable>
 
       <Text style={[grotesk(11), { color: C.fainter, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center', marginTop: 22 }]}>

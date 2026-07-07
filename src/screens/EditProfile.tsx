@@ -1,8 +1,8 @@
 // EditProfile — edit the signed-in member's profile.
 // Mirrors coterie-ios/Circle/Views/Sheets/EditProfileView.swift.
 
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, ScrollView, StyleSheet, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, ChoiceChip, UnderlineField, TextInput } from '../components/ui';
@@ -17,21 +17,67 @@ export function EditProfile() {
   const s = useStore();
   const insets = useSafeAreaInsets();
   const p = s.profile;
+  const [saving, setSaving] = useState(false);
 
-  const done = () => { s.saveProfileEdits(); };
+  // Snapshot the profile as opened, so Cancel can revert live edits.
+  const initial = useRef({
+    profile: s.profile,
+    dirtyPhotoSlots: s.dirtyPhotoSlots,
+    photoBase64: s.photoBase64,
+  });
+
+  const isDirty = () => {
+    const st = useStore.getState();
+    return JSON.stringify(st.profile) !== JSON.stringify(initial.current.profile)
+      || st.dirtyPhotoSlots.length > 0;
+  };
+
+  const done = async () => {
+    if (saving) return;
+    setSaving(true);
+    await s.saveProfileEdits(); // saves, then closes the sheet
+  };
+
+  const cancel = () => {
+    if (saving) return;
+    if (!isDirty()) { s.closeSheet(); return; }
+    Alert.alert(
+      'Discard changes?',
+      'You have unsaved changes. Are you sure you want to cancel?',
+      [
+        { text: 'Keep Editing', style: 'cancel' },
+        {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
+            useStore.setState({
+              profile: initial.current.profile,
+              dirtyPhotoSlots: initial.current.dirtyPhotoSlots,
+              photoBase64: initial.current.photoBase64,
+            });
+            s.closeSheet();
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       {/* Nav bar */}
       <View style={[styles.navBar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={() => s.closeSheet()} hitSlop={10}>
-          <Text style={[grotesk(14), { color: C.muted }]}>Cancel</Text>
+        <Pressable onPress={cancel} hitSlop={10} disabled={saving}>
+          <Text style={[grotesk(14), { color: saving ? C.faint : C.muted }]}>Cancel</Text>
         </Pressable>
         <Text style={[grotesk(11), { letterSpacing: 2.2, textTransform: 'uppercase', color: C.ink }]}>
           Edit Profile
         </Text>
-        <Pressable onPress={done} hitSlop={10}>
-          <Text style={[grotesk(14, 'semibold'), { color: C.ink }]}>Done</Text>
+        <Pressable onPress={done} hitSlop={10} disabled={saving} style={{ minWidth: 44, alignItems: 'flex-end' }}>
+          {saving ? (
+            <ActivityIndicator size="small" color={C.ink} />
+          ) : (
+            <Text style={[grotesk(14, 'semibold'), { color: C.ink }]}>Done</Text>
+          )}
         </Pressable>
       </View>
 

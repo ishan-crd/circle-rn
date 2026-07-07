@@ -2,7 +2,7 @@
 // Mirrors coterie-ios/Circle/Views/Sheets/ProfileDetailView.swift.
 
 import React from 'react';
-import { View, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, ScrollView, StyleSheet, useWindowDimensions, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -66,13 +66,13 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
                   {member.role} · {member.city}
                 </Text>
               </View>
-              <Pressed
-                scale={0.92}
+              <Pressable
                 onPress={close}
+                hitSlop={8}
                 style={[styles.closeBtn, { top: insets.top + 12 }]}
               >
                 <Ionicons name="chevron-back" size={22} color="#fff" />
-              </Pressed>
+              </Pressable>
             </View>
 
             {/* Details */}
