@@ -16,6 +16,7 @@ import {
   Text, Eyebrow, PillButton, UnderlineField, ChoiceChip, ProfilePhoto, Pressed, TextInput,
 } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
+import { LocationPicker } from '../components/LocationPicker';
 import { useStore, ONBOARDING_STEPS, interestLabels, OnboardingStep } from '../store';
 import { PRONOUNS, seedFor } from '../data';
 import { ageFrom, birthdayIssue, MAX_PROMPTS } from '../types';
@@ -192,10 +193,9 @@ function CityStep() {
   return (
     <View>
       <StepHeading title="Where are you based?"
-        subtitle="Tell us the city you call home." />
-      <View style={{ marginTop: 26 }}>
-        <UnderlineField placeholder="e.g. San Francisco" value={city}
-          onChangeText={(t) => patch({ city: t })} fontSize={28} autoCapitalize="words" />
+        subtitle="Search, detect, or drag the map — we’ll set your city." />
+      <View style={{ marginTop: 22 }}>
+        <LocationPicker value={city} onChange={(t) => patch({ city: t })} />
       </View>
     </View>
   );
