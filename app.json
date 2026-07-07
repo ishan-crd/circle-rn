@@ -22,10 +22,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#E0674A",
         "foregroundImage": "./assets/android-icon-foreground.png"
-      },
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -46,6 +43,15 @@
         "expo-notifications",
         {
           "color": "#E0674A"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FBFAF8",
+          "dark": {
+            "backgroundColor": "#100F0D"
+          }
         }
       ]
     ],
