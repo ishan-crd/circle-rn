@@ -39,7 +39,7 @@ export function Today() {
       {/* Top bar */}
       <View style={styles.topBar}>
         <View style={styles.topRow}>
-          <LogoMark height={20} />
+          <Text style={serif(24)}>Circle</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name="heart" size={11} color={CT.accent} />
             <Text style={[grotesk(10.5, 'medium'), { color: CT.muted, letterSpacing: 1.4, textTransform: 'uppercase' }]}>
