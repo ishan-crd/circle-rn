@@ -107,6 +107,7 @@ interface Actions {
   openChat(id: string): void;
   closeSheet(): void;
   send(text: string, id: string): void;
+  unmatch(id: string): Promise<void>;
   // account
   setNotifications(v: boolean): void;
   logout(): void;
@@ -493,6 +494,18 @@ export const useStore = create<Store>((set, get) => ({
     const order = [id, ...get().conversationOrder.filter((x) => x !== id)];
     set({ conversations: convos, conversationOrder: order });
     Service.sendMessage(matchId, text).catch(() => {});
+  },
+  async unmatch(id) {
+    const convos = { ...get().conversations };
+    delete convos[id];
+    const { [id]: _dropped, ...matchIDs } = get().matchIDs;
+    set({
+      conversations: convos,
+      conversationOrder: get().conversationOrder.filter((x) => x !== id),
+      matchIDs,
+      readConvos: get().readConvos.filter((x) => x !== id),
+    });
+    try { await Service.unmatch(id); } catch {}
   },
 
   // ---- account ----

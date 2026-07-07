@@ -2,7 +2,7 @@
 // Mirrors coterie-ios/Circle/Views/Sheets/ProfileDetailView.swift.
 
 import React from 'react';
-import { View, ScrollView, StyleSheet, useWindowDimensions, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, useWindowDimensions, Pressable, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,10 +19,22 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const member = s.knownMembers[memberId];
+  const photos = s.memberPhotos[memberId] ?? [];
+  const matched = !!s.matchIDs[memberId];
 
   const close = () => s.closeSheet();
   const pass = () => { s.passMember(memberId); close(); };
   const like = () => { if (s.likesRemaining === 0) return; s.likeMember(memberId); close(); };
+  const confirmUnmatch = () => {
+    Alert.alert(
+      'Unmatch?',
+      `Are you sure you want to unmatch with ${member?.name ?? 'this person'}? This removes your conversation.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Unmatch', style: 'destructive', onPress: () => { s.unmatch(memberId); close(); } },
+      ],
+    );
+  };
 
   // Swipe-right-to-go-back (like the native back gesture), only on this page.
   const tx = useSharedValue(0);
@@ -75,7 +87,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
               </Pressable>
             </View>
 
-            {/* Details */}
+            {/* Details — all photos interleaved with every detail, like Today */}
             <View style={styles.details}>
               {!!member.bio && (
                 <Text style={[serif(23), { color: C.ink80, lineHeight: 30 }]}>{member.bio}</Text>
@@ -89,10 +101,26 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
                 </Block>
               )}
 
-              {member.prompts.map((pr) => (
-                <Block key={pr.id} title={pr.q}>
-                  <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{pr.a}”</Text>
+              {member.prompts[0] && (
+                <Block title={member.prompts[0].q}>
+                  <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{member.prompts[0].a}”</Text>
                 </Block>
+              )}
+              {photos[1] && <ProfilePhoto uri={photos[1]} seed={member.portrait} style={styles.photoCard} />}
+              {member.prompts[1] && (
+                <Block title={member.prompts[1].q}>
+                  <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{member.prompts[1].a}”</Text>
+                </Block>
+              )}
+              {photos[2] && <ProfilePhoto uri={photos[2]} seed={member.portrait} style={styles.photoCard} />}
+              {member.prompts[2] && (
+                <Block title={member.prompts[2].q}>
+                  <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{member.prompts[2].a}”</Text>
+                </Block>
+              )}
+              {/* any remaining photos */}
+              {photos.slice(3).map((uri, i) => (
+                <ProfilePhoto key={`ph-${i}`} uri={uri} seed={member.portrait} style={styles.photoCard} />
               ))}
 
               {member.interests.length > 0 && (
@@ -105,20 +133,29 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
             </View>
           </ScrollView>
 
-          {/* Action bar */}
+          {/* Action bar — Unmatch once matched, otherwise Pass + Say Hi */}
           <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
-            <Pressed scale={0.94} onPress={pass} style={styles.passCircle}>
-              <Ionicons name="close" size={26} color={C.ink70} />
-            </Pressed>
-            <Pressed
-              scale={0.97}
-              onPress={like}
-              disabled={disabled}
-              style={[styles.sayHi, { opacity: disabled ? 0.4 : 1 }]}
-            >
-              <Ionicons name="heart" size={18} color={C.accentInk} />
-              <Text style={[grotesk(15, 'semibold'), { color: C.accentInk, letterSpacing: 0.5 }]}>Say Hi</Text>
-            </Pressed>
+            {matched ? (
+              <Pressed scale={0.98} onPress={confirmUnmatch} style={styles.unmatch}>
+                <Ionicons name="close" size={20} color={C.ink} />
+                <Text style={[grotesk(14, 'semibold'), { color: C.ink, letterSpacing: 0.5 }]}>Unmatch</Text>
+              </Pressed>
+            ) : (
+              <>
+                <Pressed scale={0.94} onPress={pass} style={styles.passCircle}>
+                  <Ionicons name="close" size={26} color={C.ink70} />
+                </Pressed>
+                <Pressed
+                  scale={0.97}
+                  onPress={like}
+                  disabled={disabled}
+                  style={[styles.sayHi, { opacity: disabled ? 0.4 : 1 }]}
+                >
+                  <Ionicons name="heart" size={18} color={C.accentInk} />
+                  <Text style={[grotesk(15, 'semibold'), { color: C.accentInk, letterSpacing: 0.5 }]}>Say Hi</Text>
+                </Pressed>
+              </>
+            )}
           </View>
         </Animated.View>
       </GestureDetector>
@@ -158,6 +195,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   details: { paddingHorizontal: 26, paddingTop: 28 },
+  photoCard: { width: '100%', aspectRatio: 3 / 4, borderRadius: 22, marginTop: 22, backgroundColor: C.photoEmpty },
   block: {
     marginTop: 22,
     paddingTop: 22,
@@ -187,6 +225,11 @@ const makeStyles = (C: Palette) => StyleSheet.create({
   sayHi: {
     flex: 1, height: 62, borderRadius: 31,
     backgroundColor: C.accent,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  unmatch: {
+    flex: 1, height: 62, borderRadius: 31,
+    backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
 });

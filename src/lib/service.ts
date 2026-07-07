@@ -208,4 +208,8 @@ export const Service = {
       .insert({ match_id: matchId, sender_id: uid, body }).select().limit(1);
     return (data?.[0] as MessageRow) ?? null;
   },
+  async unmatch(otherId: string) {
+    const { error } = await supabase.rpc('unmatch', { p_other: otherId });
+    if (error) throw error;
+  },
 };
