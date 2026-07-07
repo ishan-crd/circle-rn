@@ -8,7 +8,7 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { CT, serif, grotesk, eyebrow, Fonts } from '../theme';
+import { CT, serif, grotesk, eyebrow } from '../theme';
 import { PortraitSeed } from '../types';
 
 // ---- Text ------------------------------------------------------------------
@@ -71,11 +71,13 @@ export function PillButton({ title, style = 'filled', onPress, enabled = true, l
 
 // ---- LogoMark --------------------------------------------------------------
 
-export function LogoMark({ height = 20, color = CT.ink }: { height?: number; color?: string }) {
+export function LogoMark({ height = 20 }: { height?: number }) {
   return (
-    <Text style={{ fontFamily: Fonts.serif, fontSize: height * 1.15, letterSpacing: height * 0.04, color }}>
-      Circle
-    </Text>
+    <Image
+      source={require('../../assets/circle-logo.png')}
+      style={{ width: height, height }}
+      contentFit="contain"
+    />
   );
 }
 
