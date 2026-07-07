@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, LayoutChangeEvent } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { encode } from 'base64-arraybuffer';
-import { CT } from '../theme';
+import { useTheme, Palette } from '../theme';
 import { Text, ProfilePhoto } from './ui';
 import { useStore } from '../store';
 import { seedFor } from '../data';
@@ -31,6 +31,8 @@ const GAP = 10;
 const RADIUS = 16;
 
 export function PhotoGrid() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const photos = useStore((s) => s.profile.photos);
   const setPhoto = useStore((s) => s.setPhoto);
   const removePhoto = useStore((s) => s.removePhoto);
@@ -93,15 +95,15 @@ export function PhotoGrid() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  slot: { flex: 1, borderRadius: RADIUS, overflow: 'hidden', backgroundColor: CT.photoEmpty },
+  slot: { flex: 1, borderRadius: RADIUS, overflow: 'hidden', backgroundColor: C.photoEmpty },
   fill: { flex: 1 },
   empty: {
     flex: 1, alignItems: 'center', justifyContent: 'center',
-    borderRadius: RADIUS, borderWidth: 1, borderColor: CT.border, borderStyle: 'dashed',
+    borderRadius: RADIUS, borderWidth: 1, borderColor: C.border, borderStyle: 'dashed',
   },
-  plus: { fontSize: 26, color: CT.muted, lineHeight: 30 },
+  plus: { fontSize: 26, color: C.muted, lineHeight: 30 },
   remove: {
     position: 'absolute', top: 7, right: 7, width: 24, height: 24, borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center',

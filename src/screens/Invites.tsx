@@ -5,12 +5,14 @@ import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, serifItalic, grotesk } from '../theme';
+import { serif, serifItalic, grotesk, useTheme, Palette } from '../theme';
 import { Text, Eyebrow, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore, memberOf } from '../store';
 import { Member, Invitation } from '../types';
 
 export function Invites() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
 
@@ -25,7 +27,7 @@ export function Invites() {
 
       {s.invitations.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={[grotesk(14), { color: CT.muted }]}>
+          <Text style={[grotesk(14), { color: C.muted }]}>
             No new likes yet — they'll appear here.
           </Text>
         </View>
@@ -51,6 +53,8 @@ export function Invites() {
 function InviteRow({
   member, invite, uri, onPress,
 }: { member: Member; invite: Invitation; uri?: string; onPress: () => void }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <Pressed scale={0.99} onPress={onPress}>
       <View style={styles.row}>
@@ -67,14 +71,14 @@ function InviteRow({
           <View style={styles.topRow}>
             <View style={styles.nameRow}>
               <Text style={serif(25)}>{member.name}</Text>
-              <Text style={[serif(16), { color: CT.muted }]}>{member.age}</Text>
+              <Text style={[serif(16), { color: C.muted }]}>{member.age}</Text>
             </View>
-            {invite.time ? <Text style={[grotesk(11), { color: CT.faint }]}>{invite.time}</Text> : null}
+            {invite.time ? <Text style={[grotesk(11), { color: C.faint }]}>{invite.time}</Text> : null}
           </View>
           <Text style={[grotesk(10), styles.meta]}>
             {member.role} · {member.city}
           </Text>
-          <Text style={[serifItalic(17), { color: CT.ink70, lineHeight: 22 }]}>
+          <Text style={[serifItalic(17), { color: C.ink70, lineHeight: 22 }]}>
             “{invite.note}”
           </Text>
         </View>
@@ -83,9 +87,9 @@ function InviteRow({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   content: { paddingHorizontal: 22 },
-  subtitle: { color: CT.bodyLight, maxWidth: 282, marginTop: 4, marginBottom: 26, lineHeight: 20 },
+  subtitle: { color: C.bodyLight, maxWidth: 282, marginTop: 4, marginBottom: 26, lineHeight: 20 },
   empty: { alignItems: 'center', paddingTop: 70 },
   row: {
     flexDirection: 'row',
@@ -94,14 +98,14 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     marginBottom: 22,
     borderBottomWidth: 1,
-    borderBottomColor: CT.hairline,
+    borderBottomColor: C.hairline,
   },
-  photo: { width: 92, height: 118, borderRadius: 18, overflow: 'hidden', backgroundColor: CT.photoEmpty },
+  photo: { width: 92, height: 118, borderRadius: 18, overflow: 'hidden', backgroundColor: C.photoEmpty },
   body: { flex: 1, paddingTop: 4 },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   nameRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   meta: {
-    color: CT.muted,
+    color: C.muted,
     letterSpacing: 1.8,
     textTransform: 'uppercase',
     marginTop: 5,

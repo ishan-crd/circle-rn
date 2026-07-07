@@ -5,15 +5,17 @@ import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, grotesk, eyebrow } from '../theme';
+import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, Pressed, ProfilePhoto, TagPill } from '../components/ui';
 import { useStore, sharedInterests } from '../store';
 
 export function ProfileDetail({ memberId }: { memberId: string }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
   const member = s.knownMembers[memberId];
-  if (!member) return <View style={{ flex: 1, backgroundColor: CT.paper }} />;
+  if (!member) return <View style={{ flex: 1, backgroundColor: C.paper }} />;
 
   const shared = sharedInterests(s, member);
   const disabled = s.likesRemaining === 0;
@@ -22,7 +24,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
   const like = () => { if (disabled) return; s.likeMember(memberId); s.closeSheet(); };
 
   return (
-    <View style={{ flex: 1, backgroundColor: CT.paper }}>
+    <View style={{ flex: 1, backgroundColor: C.paper }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
         {/* Hero */}
         <View style={styles.hero}>
@@ -53,7 +55,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
         {/* Details */}
         <View style={styles.details}>
           {!!member.bio && (
-            <Text style={[serif(23), { color: CT.ink80, lineHeight: 30 }]}>{member.bio}</Text>
+            <Text style={[serif(23), { color: C.ink80, lineHeight: 30 }]}>{member.bio}</Text>
           )}
 
           {shared.length > 0 && (
@@ -66,7 +68,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
 
           {member.prompts.map((pr) => (
             <Block key={pr.id} title={pr.q}>
-              <Text style={[serif(25), { color: CT.ink90, lineHeight: 30 }]}>“{pr.a}”</Text>
+              <Text style={[serif(25), { color: C.ink90, lineHeight: 30 }]}>“{pr.a}”</Text>
             </Block>
           ))}
 
@@ -83,7 +85,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
       {/* Action bar */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
         <Pressed scale={0.96} onPress={pass} style={[styles.action, styles.actionOutline]}>
-          <Text style={[styles.actionLabel, { color: CT.ink }]}>PASS</Text>
+          <Text style={[styles.actionLabel, { color: C.ink }]}>PASS</Text>
         </Pressed>
         <Pressed
           scale={0.96}
@@ -91,7 +93,7 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
           disabled={disabled}
           style={[styles.action, styles.actionFilled, { flex: 1, opacity: disabled ? 0.4 : 1 }]}
         >
-          <Text style={[styles.actionLabel, { color: CT.accentInk }]}>SAY HI</Text>
+          <Text style={[styles.actionLabel, { color: C.accentInk }]}>SAY HI</Text>
         </Pressed>
       </View>
     </View>
@@ -99,16 +101,18 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
 }
 
 function Block({ title, children, first }: { title: string; children: React.ReactNode; first?: boolean }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <View style={[styles.block, first && { borderTopWidth: 0, marginTop: 0, paddingTop: 0 }]}>
-      <Text style={[eyebrow(CT.muted, 2.6), { marginBottom: 12 }]}>{title}</Text>
+      <Text style={[eyebrow(C.muted, 2.6), { marginBottom: 12 }]}>{title}</Text>
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  hero: { height: 486, width: '100%', backgroundColor: CT.photoEmpty, justifyContent: 'flex-end' },
+const makeStyles = (C: Palette) => StyleSheet.create({
+  hero: { height: 486, width: '100%', backgroundColor: C.photoEmpty, justifyContent: 'flex-end' },
   heroBody: { padding: 26, gap: 10 },
   nameRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   role: {
@@ -132,7 +136,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
     paddingTop: 22,
     borderTopWidth: 1,
-    borderTopColor: CT.hairline,
+    borderTopColor: C.hairline,
   },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   footer: {
@@ -144,9 +148,9 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 24,
     paddingTop: 14,
-    backgroundColor: CT.paper,
+    backgroundColor: C.paper,
     borderTopWidth: 1,
-    borderTopColor: CT.hairline,
+    borderTopColor: C.hairline,
   },
   action: {
     paddingVertical: 16,
@@ -154,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionOutline: { paddingHorizontal: 34, borderWidth: 1, borderColor: CT.borderStrong, backgroundColor: CT.paper },
-  actionFilled: { backgroundColor: CT.accent },
+  actionOutline: { paddingHorizontal: 34, borderWidth: 1, borderColor: C.borderStrong, backgroundColor: C.paper },
+  actionFilled: { backgroundColor: C.accent },
   actionLabel: { ...grotesk(12), letterSpacing: 2, textTransform: 'uppercase' },
 });

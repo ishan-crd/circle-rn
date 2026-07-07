@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardVisible } from '../lib/useKeyboard';
-import { CT, serif, serifItalic, grotesk } from '../theme';
+import { serif, serifItalic, grotesk, useTheme, type Palette } from '../theme';
 import {
   Text, Eyebrow, PillButton, UnderlineField, ChoiceChip, ProfilePhoto, Pressed,
 } from '../components/ui';
@@ -27,11 +27,12 @@ const ME_SEED = seedFor('me');
 function StepHeading({ title, subtitle, topPad = 18 }: {
   title: string; subtitle?: string; topPad?: number;
 }) {
+  const C = useTheme();
   return (
     <View style={{ paddingTop: topPad }}>
       <Text style={[serif(34), { lineHeight: 38 }]}>{title}</Text>
       {subtitle ? (
-        <Text style={[grotesk(14.5), { color: CT.bodyLight, lineHeight: 21, marginTop: 12 }]}>
+        <Text style={[grotesk(14.5), { color: C.bodyLight, lineHeight: 21, marginTop: 12 }]}>
           {subtitle}
         </Text>
       ) : null}
@@ -42,15 +43,16 @@ function StepHeading({ title, subtitle, topPad = 18 }: {
 // ---- Steps -----------------------------------------------------------------
 
 function WelcomeStep() {
+  const C = useTheme();
   return (
     <View style={{ paddingTop: 30 }}>
       <Eyebrow tracking={3.0} style={{ marginBottom: 22 }}>Invitation Accepted</Eyebrow>
       <Text style={[serif(46), { lineHeight: 50 }]}>Welcome to Circle.</Text>
-      <Text style={[grotesk(15.5), { color: CT.body, lineHeight: 26, marginTop: 20, maxWidth: 300 }]}>
+      <Text style={[grotesk(15.5), { color: C.body, lineHeight: 26, marginTop: 20, maxWidth: 300 }]}>
         You’ve been introduced by someone we trust. The next few moments shape how
         you’ll appear to others — there are no wrong answers, only honest ones.
       </Text>
-      <Text style={[serifItalic(20), { color: CT.muted, marginTop: 30 }]}>
+      <Text style={[serifItalic(20), { color: C.muted, marginTop: 30 }]}>
         It takes about two minutes.
       </Text>
     </View>
@@ -99,6 +101,7 @@ function BirthdayStep() {
   const patch = useStore((s) => s.patchProfile);
   const issue = birthdayIssue(profile);
   const age = ageFrom(profile);
+  const C = useTheme();
   return (
     <View>
       <StepHeading title="When’s your birthday?"
@@ -113,11 +116,11 @@ function BirthdayStep() {
       </View>
       <View style={{ marginTop: 24, height: 22, justifyContent: 'center' }}>
         {issue ? (
-          <Text style={[grotesk(14, 'medium'), { color: CT.accent }]}>⚠  {issue}</Text>
+          <Text style={[grotesk(14, 'medium'), { color: C.accent }]}>⚠  {issue}</Text>
         ) : age != null ? (
-          <Text style={[serifItalic(17), { color: CT.muted }]}>You’ll appear as {age}</Text>
+          <Text style={[serifItalic(17), { color: C.muted }]}>You’ll appear as {age}</Text>
         ) : (
-          <Text style={[serifItalic(17), { color: CT.muted }]}> </Text>
+          <Text style={[serifItalic(17), { color: C.muted }]}> </Text>
         )}
       </View>
     </View>
@@ -125,6 +128,7 @@ function BirthdayStep() {
 }
 
 function PhotosStep() {
+  const C = useTheme();
   const filled = useStore((s) => s.profile.photos.filter((x) => x != null).length);
   const hint = filled >= 2 ? `${filled} added`
     : filled === 0 ? 'Tap a frame to add a photo' : 'Add at least one more';
@@ -135,7 +139,7 @@ function PhotosStep() {
       <View style={{ marginTop: 28 }}>
         <PhotoGrid />
       </View>
-      <Text style={[grotesk(12), { color: CT.muted, textAlign: 'center', marginTop: 16 }]}>{hint}</Text>
+      <Text style={[grotesk(12), { color: C.muted, textAlign: 'center', marginTop: 16 }]}>{hint}</Text>
     </View>
   );
 }
@@ -143,6 +147,8 @@ function PhotosStep() {
 function ChipGroup({ label, options, selected, onSelect }: {
   label: string; options: string[]; selected: string; onSelect: (v: string) => void;
 }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <View style={{ gap: 14 }}>
       <Eyebrow tracking={2.2}>{label}</Eyebrow>
@@ -156,6 +162,8 @@ function ChipGroup({ label, options, selected, onSelect }: {
 }
 
 function AboutStep() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const profile = useStore((s) => s.profile);
   const patch = useStore((s) => s.patchProfile);
   return (
@@ -167,11 +175,11 @@ function AboutStep() {
         <Eyebrow tracking={2.2}>A little about you</Eyebrow>
         <TextInput
           placeholder="Your answer…"
-          placeholderTextColor={CT.faint}
+          placeholderTextColor={C.faint}
           value={profile.bio}
           onChangeText={(t) => patch({ bio: t })}
           multiline
-          style={[grotesk(15), styles.bioField, { color: CT.ink90 }]}
+          style={[grotesk(15), styles.bioField, { color: C.ink90 }]}
         />
       </View>
     </View>
@@ -209,6 +217,8 @@ function WorkStep() {
 }
 
 function PromptStep() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const profile = useStore((s) => s.profile);
   const promptOptions = useStore((s) => s.promptOptions);
   const setPrompt = useStore((s) => s.setPrompt);
@@ -235,20 +245,20 @@ function PromptStep() {
         {profile.prompts.map((resp, i) => (
           <View key={i} style={styles.promptCard}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-              <Eyebrow color={CT.accent} tracking={2.0} style={{ flex: 1 }}>
+              <Eyebrow color={C.accent} tracking={2.0} style={{ flex: 1 }}>
                 {questionFor(resp.promptId)}
               </Eyebrow>
               <Pressed scale={0.9} onPress={() => removePrompt(i)} style={styles.promptRemove}>
-                <Text style={{ color: CT.muted, fontSize: 11, fontWeight: '700' }}>✕</Text>
+                <Text style={{ color: C.muted, fontSize: 11, fontWeight: '700' }}>✕</Text>
               </Pressed>
             </View>
             <TextInput
               placeholder="Your answer…"
-              placeholderTextColor={CT.faint}
+              placeholderTextColor={C.faint}
               value={resp.answer}
               onChangeText={(t) => setPrompt(i, resp.promptId, t)}
               multiline
-              style={[grotesk(15), styles.answerField, { color: CT.ink90 }]}
+              style={[grotesk(15), styles.answerField, { color: C.ink90 }]}
             />
           </View>
         ))}
@@ -259,19 +269,19 @@ function PromptStep() {
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                 <Eyebrow tracking={2.2} style={{ flex: 1 }}>Pick a prompt</Eyebrow>
                 <Pressed onPress={() => setPicking(false)}>
-                  <Text style={[grotesk(12, 'medium'), { color: CT.muted }]}>Cancel</Text>
+                  <Text style={[grotesk(12, 'medium'), { color: C.muted }]}>Cancel</Text>
                 </Pressed>
               </View>
               {available.map(([id, q]) => (
                 <Pressed key={id} scale={0.99} onPress={() => addPrompt(id)}
                   style={styles.pickerRow}>
-                  <Text style={[serif(18), { color: CT.ink }]}>{q}</Text>
+                  <Text style={[serif(18), { color: C.ink }]}>{q}</Text>
                 </Pressed>
               ))}
             </View>
           ) : (
             <Pressed scale={0.99} onPress={() => setPicking(true)} style={styles.addPrompt}>
-              <Text style={[grotesk(13, 'medium'), { color: CT.accent, letterSpacing: 0.4 }]}>
+              <Text style={[grotesk(13, 'medium'), { color: C.accent, letterSpacing: 0.4 }]}>
                 +  {profile.prompts.length === 0 ? 'Choose a prompt' : 'Add another prompt'}
               </Text>
             </Pressed>
@@ -283,6 +293,8 @@ function PromptStep() {
 }
 
 function InterestsStep() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const interests = useStore((s) => s.profile.interests);
   const toggle = useStore((s) => s.toggleInterest);
   const labels = interestLabels(useStore.getState());
@@ -297,12 +309,14 @@ function InterestsStep() {
             onPress={() => toggle(t)} fontSize={13} hPad={16} vPad={10} />
         ))}
       </View>
-      <Text style={[grotesk(12), { color: CT.muted, marginTop: 18 }]}>{hint}</Text>
+      <Text style={[grotesk(12), { color: C.muted, marginTop: 18 }]}>{hint}</Text>
     </View>
   );
 }
 
 function ReviewStep() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const p = useStore((s) => s.profile);
   const age = ageFrom(p);
   const firstPhoto = p.photos.find((x) => x != null) ?? null;
@@ -315,11 +329,11 @@ function ReviewStep() {
       <Eyebrow tracking={2.0} style={{ marginTop: 10 }}>
         {p.work}{p.city ? ` · ${p.city}` : ''}
       </Eyebrow>
-      <Text style={[serifItalic(18), { color: CT.body, marginTop: 18 }]}>
+      <Text style={[serifItalic(18), { color: C.body, marginTop: 18 }]}>
         {p.interests.slice(0, 3).join('   ·   ')}
       </Text>
-      <View style={{ width: 34, height: 1, backgroundColor: CT.border, marginVertical: 26 }} />
-      <Text style={[grotesk(15), { color: CT.body, textAlign: 'center', lineHeight: 24, maxWidth: 280 }]}>
+      <View style={{ width: 34, height: 1, backgroundColor: C.border, marginVertical: 26 }} />
+      <Text style={[grotesk(15), { color: C.body, textAlign: 'center', lineHeight: 24, maxWidth: 280 }]}>
         Your introduction is ready.
       </Text>
     </View>
@@ -344,6 +358,8 @@ const STEP_RENDER: Record<OnboardingStep, () => React.ReactElement> = {
 const SLIDE_MS = 420;
 
 export function Onboarding() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const keyboardUp = useKeyboardVisible();
   const stepIndex = useStore((s) => s.onboardingStep);
@@ -399,13 +415,13 @@ export function Onboarding() {
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {stepIndex > 0 ? (
           <Pressed scale={0.9} onPress={goPrev}>
-            <Text style={{ fontSize: 20, color: CT.ink }}>‹</Text>
+            <Text style={{ fontSize: 20, color: C.ink }}>‹</Text>
           </Pressed>
         ) : null}
         <View style={styles.track} onLayout={(e) => { trackW.value = e.nativeEvent.layout.width; }}>
           <Animated.View style={[styles.fill, fillStyle]} />
         </View>
-        <Text style={[grotesk(10), { color: CT.muted, letterSpacing: 1.8 }]}>
+        <Text style={[grotesk(10), { color: C.muted, letterSpacing: 1.8 }]}>
           {pad(stepIndex + 1)} / {pad(total)}
         </Text>
       </View>
@@ -430,43 +446,43 @@ export function Onboarding() {
 
 export default Onboarding;
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: CT.paper },
+const makeStyles = (C: Palette) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.paper },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
     paddingHorizontal: 26, paddingBottom: 8,
   },
-  track: { flex: 1, height: 2, borderRadius: 1, backgroundColor: CT.fill, overflow: 'hidden' },
-  fill: { height: 2, borderRadius: 1, backgroundColor: CT.ink },
+  track: { flex: 1, height: 2, borderRadius: 1, backgroundColor: C.fill, overflow: 'hidden' },
+  fill: { height: 2, borderRadius: 1, backgroundColor: C.ink },
   footer: {
     paddingHorizontal: 26, paddingTop: 14, paddingBottom: 12,
-    borderTopWidth: 1, borderTopColor: CT.hairlineSoft,
+    borderTopWidth: 1, borderTopColor: C.hairlineSoft,
   },
   flow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   bioField: {
-    minHeight: 96, borderWidth: 1, borderColor: CT.border, borderRadius: 16,
-    padding: 14, textAlignVertical: 'top', backgroundColor: CT.surface,
+    minHeight: 96, borderWidth: 1, borderColor: C.border, borderRadius: 16,
+    padding: 14, textAlignVertical: 'top', backgroundColor: C.surface,
   },
   promptCard: {
-    padding: 16, backgroundColor: CT.surface, borderRadius: 18,
-    borderWidth: 1, borderColor: CT.border, gap: 10,
+    padding: 16, backgroundColor: C.surface, borderRadius: 18,
+    borderWidth: 1, borderColor: C.border, gap: 10,
   },
   promptRemove: {
-    width: 24, height: 24, borderRadius: 12, backgroundColor: CT.fill,
+    width: 24, height: 24, borderRadius: 12, backgroundColor: C.fill,
     alignItems: 'center', justifyContent: 'center',
   },
   answerField: {
-    minHeight: 88, borderWidth: 1, borderColor: CT.border, borderRadius: 16,
-    padding: 12, textAlignVertical: 'top', backgroundColor: CT.surface,
+    minHeight: 88, borderWidth: 1, borderColor: C.border, borderRadius: 16,
+    padding: 12, textAlignVertical: 'top', backgroundColor: C.surface,
   },
   addPrompt: {
     paddingVertical: 16, alignItems: 'center', borderRadius: 16,
-    backgroundColor: CT.accentSoft, borderWidth: 1, borderColor: 'rgba(224,103,74,0.4)',
+    backgroundColor: C.accentSoft, borderWidth: 1, borderColor: 'rgba(224,103,74,0.4)',
     borderStyle: 'dashed',
   },
   picker: {
-    padding: 16, backgroundColor: CT.paper, borderRadius: 18,
-    borderWidth: 1, borderColor: CT.hairline, gap: 9,
+    padding: 16, backgroundColor: C.paper, borderRadius: 18,
+    borderWidth: 1, borderColor: C.hairline, gap: 9,
   },
   pickerRow: { paddingVertical: 6 },
   reviewPhoto: {

@@ -6,13 +6,15 @@ import {
   View, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, grotesk, serif } from '../theme';
+import { grotesk, serif, useTheme, Palette } from '../theme';
 import { Text, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { ChatMessage } from '../types';
 
 export function Chat({ memberId }: { memberId: string }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
   const keyboardUp = useKeyboardVisible();
@@ -31,13 +33,13 @@ export function Chat({ memberId }: { memberId: string }) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: CT.paper }}
+      style={{ flex: 1, backgroundColor: C.paper }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Nav bar */}
       <View style={[styles.navBar, { paddingTop: insets.top + 8 }]}>
         <Pressed scale={0.9} onPress={() => s.closeSheet()} style={styles.backBtn}>
-          <Text style={{ fontFamily: 'System', fontSize: 26, color: CT.ink, marginTop: -2 }}>‹</Text>
+          <Text style={{ fontFamily: 'System', fontSize: 26, color: C.ink, marginTop: -2 }}>‹</Text>
         </Pressed>
         {member && (
           <>
@@ -75,13 +77,13 @@ export function Chat({ memberId }: { memberId: string }) {
           value={draft}
           onChangeText={setDraft}
           placeholder="Write something considered…"
-          placeholderTextColor={CT.faint}
+          placeholderTextColor={C.faint}
           style={styles.input}
           returnKeyType="send"
           onSubmitEditing={send}
         />
         <Pressed scale={0.9} onPress={send} style={styles.sendBtn}>
-          <Text style={{ fontSize: 20, color: CT.accentInk, fontWeight: '600', marginTop: -2 }}>↑</Text>
+          <Text style={{ fontSize: 20, color: C.accentInk, fontWeight: '600', marginTop: -2 }}>↑</Text>
         </Pressed>
       </View>
     </KeyboardAvoidingView>
@@ -89,17 +91,19 @@ export function Chat({ memberId }: { memberId: string }) {
 }
 
 function Bubble({ msg }: { msg: ChatMessage }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <View style={[styles.bubbleRow, { justifyContent: msg.fromMe ? 'flex-end' : 'flex-start' }]}>
       <View
         style={[
           styles.bubble,
           msg.fromMe
-            ? { backgroundColor: CT.accent, borderBottomRightRadius: 7 }
-            : { backgroundColor: CT.bubbleThem, borderBottomLeftRadius: 7 },
+            ? { backgroundColor: C.accent, borderBottomRightRadius: 7 }
+            : { backgroundColor: C.bubbleThem, borderBottomLeftRadius: 7 },
         ]}
       >
-        <Text style={[grotesk(15), { color: msg.fromMe ? CT.accentInk : CT.ink90, lineHeight: 21 }]}>
+        <Text style={[grotesk(15), { color: msg.fromMe ? C.accentInk : C.ink90, lineHeight: 21 }]}>
           {msg.text}
         </Text>
       </View>
@@ -107,24 +111,24 @@ function Bubble({ msg }: { msg: ChatMessage }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 13,
     paddingHorizontal: 18,
     paddingBottom: 12,
-    backgroundColor: CT.paper,
+    backgroundColor: C.paper,
     borderBottomWidth: 1,
-    borderBottomColor: CT.hairline,
+    borderBottomColor: C.hairline,
   },
   backBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: CT.photoEmpty },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.photoEmpty },
   role: {
     ...grotesk(10),
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    color: CT.muted,
+    color: C.muted,
   },
   messages: {
     paddingHorizontal: 18,
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     ...grotesk(10.5),
     letterSpacing: 2,
     textTransform: 'uppercase',
-    color: CT.faint,
+    color: C.faint,
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -153,26 +157,26 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: CT.paper,
+    backgroundColor: C.paper,
     borderTopWidth: 1,
-    borderTopColor: CT.hairline,
+    borderTopColor: C.hairline,
   },
   input: {
     flex: 1,
     ...grotesk(15),
-    color: CT.ink,
+    color: C.ink,
     paddingHorizontal: 18,
     paddingVertical: 13,
-    backgroundColor: CT.surface,
+    backgroundColor: C.surface,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: CT.border,
+    borderColor: C.border,
   },
   sendBtn: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: CT.accent,
+    backgroundColor: C.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },

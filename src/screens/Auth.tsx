@@ -6,7 +6,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, grotesk } from '../theme';
+import { serif, grotesk, useTheme, Palette } from '../theme';
 import { Text, PillButton, LogoMark } from '../components/ui';
 import { useStore } from '../store';
 import { useKeyboardVisible } from '../lib/useKeyboard';
@@ -15,6 +15,8 @@ import { supabase } from '../lib/supabase';
 WebBrowser.maybeCompleteAuthSession();
 
 export function Auth() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const authError = useStore((s) => s.authError);
   const signInWithApple = useStore((s) => s.signInWithApple);
@@ -59,25 +61,25 @@ export function Auth() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.hero}>
         <LogoMark height={40} />
-        <Text style={[serif(30), { color: CT.body, textAlign: 'center', marginTop: 18, maxWidth: 300 }]}>
+        <Text style={[serif(30), { color: C.body, textAlign: 'center', marginTop: 18, maxWidth: 300 }]}>
           Find friends who share your world.
         </Text>
       </View>
 
       <View style={styles.buttons}>
         {Platform.OS === 'ios' && (
-          <ProviderButton icon={<Ionicons name="logo-apple" size={19} color={CT.ink} />}
+          <ProviderButton icon={<Ionicons name="logo-apple" size={19} color={C.ink} />}
             label="Continue with Apple" onPress={onApple} />
         )}
-        <ProviderButton icon={<Ionicons name="logo-google" size={17} color={CT.ink} />}
+        <ProviderButton icon={<Ionicons name="logo-google" size={17} color={C.ink} />}
           label="Continue with Google" onPress={onGoogle} />
-        <ProviderButton icon={<Ionicons name="mail" size={16} color={CT.ink} />}
+        <ProviderButton icon={<Ionicons name="mail" size={16} color={C.ink} />}
           label="Continue with Email" onPress={() => setEmailSheet(true)} />
 
-        {authError && <Text style={[grotesk(12), { color: CT.accent, textAlign: 'center', marginTop: 12 }]}>{authError}</Text>}
+        {authError && <Text style={[grotesk(12), { color: C.accent, textAlign: 'center', marginTop: 12 }]}>{authError}</Text>}
       </View>
 
-      <Text style={[grotesk(11), { color: CT.faint, textAlign: 'center', paddingBottom: insets.bottom + 14 }]}>
+      <Text style={[grotesk(11), { color: C.faint, textAlign: 'center', paddingBottom: insets.bottom + 14 }]}>
         By continuing you agree to our terms.
       </Text>
 
@@ -89,16 +91,20 @@ export function Auth() {
 }
 
 function ProviderButton({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <Pressable onPress={onPress} style={styles.provider}>
       <View style={styles.providerIcon}>{icon}</View>
-      <Text style={[grotesk(15, 'medium'), { color: CT.ink }]}>{label}</Text>
+      <Text style={[grotesk(15, 'medium'), { color: C.ink }]}>{label}</Text>
       <View style={{ width: 20 }} />
     </Pressable>
   );
 }
 
 function EmailSheet({ onClose }: { onClose: () => void }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const keyboardUp = useKeyboardVisible();
   const sendEmailCode = useStore((s) => s.sendEmailCode);
@@ -119,24 +125,24 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
         <View style={styles.sheetHead}>
           <Text style={serif(30)}>{sent ? 'Enter the code' : 'Your email'}</Text>
           <Pressable onPress={onClose} style={styles.close}>
-            <Ionicons name="close" size={16} color={CT.muted} />
+            <Ionicons name="close" size={16} color={C.muted} />
           </Pressable>
         </View>
-        <Text style={[grotesk(14), { color: CT.bodyLight, marginTop: 10 }]}>
+        <Text style={[grotesk(14), { color: C.bodyLight, marginTop: 10 }]}>
           {sent ? `We emailed a 6-digit code to ${cleanEmail}.` : 'We’ll email you a 6-digit code to sign in.'}
         </Text>
 
         {sent ? (
           <TextInput value={code} onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-            placeholder="123456" placeholderTextColor={CT.faint} keyboardType="number-pad"
+            placeholder="123456" placeholderTextColor={C.faint} keyboardType="number-pad"
             style={[serif(30), styles.field]} />
         ) : (
           <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com"
-            placeholderTextColor={CT.faint} keyboardType="email-address" autoCapitalize="none"
+            placeholderTextColor={C.faint} keyboardType="email-address" autoCapitalize="none"
             style={[serif(26), styles.field]} />
         )}
 
-        {authError && <Text style={[grotesk(12), { color: CT.accent, marginTop: 12 }]}>{authError}</Text>}
+        {authError && <Text style={[grotesk(12), { color: C.accent, marginTop: 12 }]}>{authError}</Text>}
 
         <View style={{ marginTop: 24 }}>
           <PillButton
@@ -151,7 +157,7 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
         </View>
         {sent && (
           <Pressable onPress={() => { setSent(false); setCode(''); }} style={{ paddingVertical: 12, alignItems: 'center' }}>
-            <Text style={[grotesk(13), { color: CT.muted }]}>Use a different email</Text>
+            <Text style={[grotesk(13), { color: C.muted }]}>Use a different email</Text>
           </Pressable>
         )}
       </View>
@@ -159,20 +165,20 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: CT.paper, paddingHorizontal: 30 },
+const makeStyles = (C: Palette) => StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.paper, paddingHorizontal: 30 },
   hero: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   buttons: { gap: 12 },
   provider: {
-    height: 54, borderRadius: 999, borderWidth: 1, borderColor: CT.border,
+    height: 54, borderRadius: 999, borderWidth: 1, borderColor: C.border,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
   },
   providerIcon: { width: 20, alignItems: 'center' },
   sheet: {
-    backgroundColor: CT.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28,
     paddingHorizontal: 26, paddingTop: 20, minHeight: 320,
   },
   sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  close: { width: 32, height: 32, borderRadius: 16, backgroundColor: CT.fill, alignItems: 'center', justifyContent: 'center' },
-  field: { color: CT.ink, marginTop: 30, borderBottomWidth: 1, borderBottomColor: CT.border, paddingBottom: 10 },
+  close: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
+  field: { color: C.ink, marginTop: 30, borderBottomWidth: 1, borderBottomColor: C.border, paddingBottom: 10 },
 });

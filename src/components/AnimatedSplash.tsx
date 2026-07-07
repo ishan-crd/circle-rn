@@ -4,13 +4,13 @@
 //     the screen edges as the caption fades out.
 //  3. The whole splash fades to reveal the app.
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withDelay, withSequence,
   Easing, runOnJS, interpolate,
 } from 'react-native-reanimated';
-import { CT, serif } from '../theme';
+import { serif, useTheme, type Palette } from '../theme';
 import { Text } from './ui';
 
 const INTRO_MS = 380;   // ring + caption fade in
@@ -23,6 +23,8 @@ const START_BORDER = 14;
 const END_BORDER = 2;
 
 export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
+  const C = useTheme();
+  const styles = useMemo(() => makeStyles(C), [C]);
   const { width, height } = useWindowDimensions();
   // Just past the screen's diagonal so the ring reaches the corners exactly at
   // the end of the grow — no blank hold after it has already left the screen.
@@ -64,21 +66,21 @@ export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
     <Animated.View style={[styles.root, rootStyle]}>
       <Animated.View style={[styles.ring, ringStyle]} />
       <Animated.View style={[styles.caption, captionStyle]}>
-        <Text style={[serif(30), { color: CT.ink }]}>Circle</Text>
+        <Text style={[serif(30), { color: C.ink }]}>Circle</Text>
       </Animated.View>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   root: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: CT.paper,
+    backgroundColor: C.paper,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ring: { borderColor: CT.accent },
+  ring: { borderColor: C.accent },
   // Sits just below the centered ring's starting position.
   caption: {
     position: 'absolute',

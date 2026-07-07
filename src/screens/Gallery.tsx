@@ -5,12 +5,14 @@ import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, serifItalic, grotesk } from '../theme';
+import { serif, serifItalic, grotesk, useTheme, Palette } from '../theme';
 import { Text, Eyebrow, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
 import { Member } from '../types';
 
 export function Gallery() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
 
@@ -25,7 +27,7 @@ export function Gallery() {
 
       {s.feed.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={[grotesk(14), { color: CT.muted }]}>
+          <Text style={[grotesk(14), { color: C.muted }]}>
             {s.feedLoading ? 'Gathering people…' : 'No one new right now.'}
           </Text>
         </View>
@@ -44,6 +46,8 @@ export function Gallery() {
 }
 
 function GalleryCard({ member, uri, onPress }: { member: Member; uri?: string; onPress: () => void }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return (
     <Pressed scale={0.985} onPress={onPress} style={styles.card}>
       <ProfilePhoto uri={uri} seed={member.portrait} style={StyleSheet.absoluteFill} />
@@ -66,9 +70,9 @@ function GalleryCard({ member, uri, onPress }: { member: Member; uri?: string; o
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   content: { paddingHorizontal: 22 },
-  subtitle: { color: CT.bodyLight, maxWidth: 280, marginTop: 4, marginBottom: 24, lineHeight: 20 },
+  subtitle: { color: C.bodyLight, maxWidth: 280, marginTop: 4, marginBottom: 24, lineHeight: 20 },
   empty: { alignItems: 'center', paddingTop: 80 },
   card: {
     width: '100%',
@@ -77,7 +81,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'flex-end',
     marginBottom: 26,
-    backgroundColor: CT.photoEmpty,
+    backgroundColor: C.photoEmpty,
   },
   cardBody: { padding: 24 },
   nameRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },

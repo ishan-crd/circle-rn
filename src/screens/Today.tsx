@@ -7,12 +7,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
-import { CT, serif, grotesk, eyebrow } from '../theme';
+import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, ProfilePhoto, TagPill, ChoiceChip, PillButton } from '../components/ui';
 import { useStore, exploreCandidates, sharedInterests, myTopics } from '../store';
 import { Member } from '../types';
 
 export function Today() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const state = useStore();
   const candidates = exploreCandidates(state);
@@ -35,14 +37,14 @@ export function Today() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: CT.paper, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: C.paper, paddingTop: insets.top }}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <View style={styles.topRow}>
           <Text style={serif(24)}>Circle</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name="heart" size={11} color={CT.accent} />
-            <Text style={[grotesk(10.5, 'medium'), { color: CT.muted, letterSpacing: 1.4, textTransform: 'uppercase' }]}>
+            <Ionicons name="heart" size={11} color={C.accent} />
+            <Text style={[grotesk(10.5, 'medium'), { color: C.muted, letterSpacing: 1.4, textTransform: 'uppercase' }]}>
               {state.likesRemaining === 1 ? '1 like left' : `${state.likesRemaining} likes left`}
             </Text>
           </View>
@@ -65,13 +67,13 @@ export function Today() {
 
           <View style={[styles.actions, { paddingBottom: 96 }]}>
             <Pressable onPress={() => doPass(candidate.id)} style={[styles.circle, styles.circleOutline]}>
-              <Ionicons name="close" size={24} color={CT.ink70} />
+              <Ionicons name="close" size={24} color={C.ink70} />
             </Pressable>
             <Pressable
               onPress={() => state.beginLike(candidate.id)}
               disabled={state.likesRemaining === 0}
               style={[styles.circle, styles.circleFilled, state.likesRemaining === 0 && { opacity: 0.4 }]}>
-              <Ionicons name="heart" size={23} color={CT.accentInk} />
+              <Ionicons name="heart" size={23} color={C.accentInk} />
             </Pressable>
           </View>
         </View>
@@ -80,7 +82,7 @@ export function Today() {
           <Text style={[serif(30), { textAlign: 'center' }]}>
             {state.feedLoading ? 'Finding your people…' : state.exploreTopics.length ? 'No one new in these topics.' : 'You’re all caught up.'}
           </Text>
-          <Text style={[grotesk(14.5), { color: CT.bodyLight, textAlign: 'center', marginTop: 14, maxWidth: 270, lineHeight: 22 }]}>
+          <Text style={[grotesk(14.5), { color: C.bodyLight, textAlign: 'center', marginTop: 14, maxWidth: 270, lineHeight: 22 }]}>
             {state.exploreTopics.length ? 'Try removing a topic, or come back later as more people join.'
               : 'You’ve seen everyone for now. New people join all the time — check back soon.'}
           </Text>
@@ -96,17 +98,19 @@ export function Today() {
 }
 
 function ProfileScroll({ member, shared }: { member: Member; shared: string[] }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const photos = useStore((s) => s.memberPhotos[member.id]) ?? [];
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 130 }}>
       <View style={{ gap: 6, marginBottom: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
           <Text style={serif(40)}>{member.name}</Text>
-          <Text style={[serif(28), { color: CT.body }]}>{member.age}</Text>
+          <Text style={[serif(28), { color: C.body }]}>{member.age}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#34C759' }} />
-          <Text style={[grotesk(11), { color: CT.muted, letterSpacing: 1.6, textTransform: 'uppercase' }]}>Active today</Text>
+          <Text style={[grotesk(11), { color: C.muted, letterSpacing: 1.6, textTransform: 'uppercase' }]}>Active today</Text>
         </View>
       </View>
 
@@ -124,7 +128,7 @@ function ProfileScroll({ member, shared }: { member: Member; shared: string[] })
       {member.bio ? (
         <Card>
           <Eye>About</Eye>
-          <Text style={[serif(21), { color: CT.ink90, marginTop: 8, lineHeight: 28 }]}>{member.bio}</Text>
+          <Text style={[serif(21), { color: C.ink90, marginTop: 8, lineHeight: 28 }]}>{member.bio}</Text>
         </Card>
       ) : null}
       {member.prompts[1] && <Prompt q={member.prompts[1].q} a={member.prompts[1].a} />}
@@ -142,34 +146,44 @@ function ProfileScroll({ member, shared }: { member: Member; shared: string[] })
 }
 
 function Photo({ uri, member }: { uri?: string; member: Member }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   return <ProfilePhoto uri={uri} seed={member.portrait} style={styles.photo} />;
 }
-function Card({ children }: { children: React.ReactNode }) { return <View style={styles.card}>{children}</View>; }
-function Eye({ children }: { children: React.ReactNode }) { return <Text style={eyebrow(CT.muted, 2.4)}>{children}</Text>; }
+function Card({ children }: { children: React.ReactNode }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
+  return <View style={styles.card}>{children}</View>;
+}
+function Eye({ children }: { children: React.ReactNode }) {
+  const C = useTheme();
+  return <Text style={eyebrow(C.muted, 2.4)}>{children}</Text>;
+}
 function Prompt({ q, a }: { q: string; a: string }) {
+  const C = useTheme();
   return (
     <Card>
       <Eye>{q}</Eye>
-      <Text style={[serif(26), { color: CT.ink90, marginTop: 8, lineHeight: 32 }]}>“{a}”</Text>
+      <Text style={[serif(26), { color: C.ink90, marginTop: 8, lineHeight: 32 }]}>“{a}”</Text>
     </Card>
   );
 }
 
-const styles = StyleSheet.create({
-  topBar: { paddingTop: 6, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: CT.hairlineSoft },
+const makeStyles = (C: Palette) => StyleSheet.create({
+  topBar: { paddingTop: 6, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.hairlineSoft },
   topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22 },
   chips: { paddingHorizontal: 22, paddingVertical: 8, gap: 9, flexDirection: 'row' },
   photo: { width: '100%', aspectRatio: 3 / 4, borderRadius: 22, marginTop: 16 },
   card: {
-    width: '100%', marginTop: 16, padding: 22, backgroundColor: CT.surface,
-    borderRadius: 22, borderWidth: 1, borderColor: CT.border, gap: 0,
+    width: '100%', marginTop: 16, padding: 22, backgroundColor: C.surface,
+    borderRadius: 22, borderWidth: 1, borderColor: C.border, gap: 0,
   },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   actions: {
     position: 'absolute', left: 30, right: 30, bottom: 0, flexDirection: 'row', justifyContent: 'space-between',
   },
   circle: { width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center' },
-  circleOutline: { backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: 1, borderColor: CT.border },
-  circleFilled: { backgroundColor: CT.accent },
+  circleOutline: { backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: 1, borderColor: C.border },
+  circleFilled: { backgroundColor: C.accent },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
 });

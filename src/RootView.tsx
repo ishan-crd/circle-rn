@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { View, Modal, ActivityIndicator } from 'react-native';
-import { CT } from './theme';
+import { useTheme } from './theme';
 import { useStore } from './store';
 import { Auth } from './screens/Auth';
 import { Onboarding } from './screens/Onboarding';
@@ -15,16 +15,17 @@ import { ProfileDetail } from './screens/ProfileDetail';
 import { EditProfile } from './screens/EditProfile';
 
 export function RootView() {
+  const C = useTheme();
   const stage = useStore((s) => s.stage);
   const matched = useStore((s) => s.matchedMember);
   const sheet = useStore((s) => s.activeSheet);
   const closeSheet = useStore((s) => s.closeSheet);
 
   return (
-    <View style={{ flex: 1, backgroundColor: CT.paper }}>
+    <View style={{ flex: 1, backgroundColor: C.paper }}>
       {stage === 'loading' && (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color={CT.accent} />
+          <ActivityIndicator color={C.accent} />
         </View>
       )}
       {stage === 'auth' && <Auth />}
@@ -44,7 +45,7 @@ export function RootView() {
         presentationStyle="fullScreen"
         onRequestClose={closeSheet}
       >
-        <View style={{ flex: 1, backgroundColor: CT.paper }}>
+        <View style={{ flex: 1, backgroundColor: C.paper }}>
           {sheet?.type === 'chat' && sheet.id && <Chat memberId={sheet.id} />}
           {sheet?.type === 'profile' && sheet.id && <ProfileDetail memberId={sheet.id} />}
           {sheet?.type === 'edit' && <EditProfile />}

@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, grotesk, eyebrow } from '../theme';
+import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, ChoiceChip, UnderlineField } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, interestLabels } from '../store';
@@ -12,6 +12,8 @@ import { PRONOUNS } from '../data';
 import { MAX_PROMPTS } from '../types';
 
 export function EditProfile() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const insets = useSafeAreaInsets();
   const p = s.profile;
@@ -19,17 +21,17 @@ export function EditProfile() {
   const done = () => { s.saveProfileEdits(); };
 
   return (
-    <View style={{ flex: 1, backgroundColor: CT.paper }}>
+    <View style={{ flex: 1, backgroundColor: C.paper }}>
       {/* Nav bar */}
       <View style={[styles.navBar, { paddingTop: insets.top + 8 }]}>
         <Pressable onPress={() => s.closeSheet()} hitSlop={10}>
-          <Text style={[grotesk(14), { color: CT.muted }]}>Cancel</Text>
+          <Text style={[grotesk(14), { color: C.muted }]}>Cancel</Text>
         </Pressable>
-        <Text style={[grotesk(11), { letterSpacing: 2.2, textTransform: 'uppercase', color: CT.ink }]}>
+        <Text style={[grotesk(11), { letterSpacing: 2.2, textTransform: 'uppercase', color: C.ink }]}>
           Edit Profile
         </Text>
         <Pressable onPress={done} hitSlop={10}>
-          <Text style={[grotesk(14, 'semibold'), { color: CT.ink }]}>Done</Text>
+          <Text style={[grotesk(14, 'semibold'), { color: C.ink }]}>Done</Text>
         </Pressable>
       </View>
 
@@ -69,7 +71,7 @@ export function EditProfile() {
         <Label top={28}>About</Label>
         <TextInput
           placeholder="A few considered lines about you…"
-          placeholderTextColor={CT.faint}
+          placeholderTextColor={C.faint}
           value={p.bio}
           onChangeText={(t) => s.patchProfile({ bio: t })}
           multiline
@@ -113,6 +115,8 @@ function PromptComposer() {
 }
 
 function PromptSlot({ index, response }: { index: number; response?: { promptId: string; answer: string } }) {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const s = useStore();
   const [open, setOpen] = useState(false);
   const usedIds = s.profile.prompts.map((r) => r?.promptId).filter(Boolean);
@@ -123,7 +127,7 @@ function PromptSlot({ index, response }: { index: number; response?: { promptId:
   return (
     <View style={styles.promptCard}>
       <Pressable onPress={() => setOpen((v) => !v)}>
-        <Text style={[grotesk(13, 'medium'), { color: question ? CT.ink70 : CT.muted }]}>
+        <Text style={[grotesk(13, 'medium'), { color: question ? C.ink70 : C.muted }]}>
           {question ?? 'Choose a prompt'}
         </Text>
       </Pressable>
@@ -147,7 +151,7 @@ function PromptSlot({ index, response }: { index: number; response?: { promptId:
       {!!response?.promptId && (
         <TextInput
           placeholder="Your answer…"
-          placeholderTextColor={CT.faint}
+          placeholderTextColor={C.faint}
           value={response.answer}
           onChangeText={(t) => s.setPrompt(index, response.promptId, t)}
           multiline
@@ -165,42 +169,43 @@ function digits(t: string, max: number): string {
 }
 
 function Label({ children, top }: { children: React.ReactNode; top?: number }) {
-  return <Text style={[eyebrow(CT.muted, 2.6), { marginTop: top ?? 0, marginBottom: 12 }]}>{children}</Text>;
+  const C = useTheme();
+  return <Text style={[eyebrow(C.muted, 2.6), { marginTop: top ?? 0, marginBottom: 12 }]}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 22,
     paddingBottom: 14,
-    backgroundColor: CT.paper,
+    backgroundColor: C.paper,
     borderBottomWidth: 1,
-    borderBottomColor: CT.hairline,
+    borderBottomColor: C.hairline,
   },
   content: { paddingHorizontal: 26, paddingTop: 24, paddingBottom: 80 },
   dobRow: { flexDirection: 'row', gap: 16 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   bio: {
     ...serif(22),
-    color: CT.ink,
+    color: C.ink,
     minHeight: 90,
     textAlignVertical: 'top',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: CT.border,
+    borderBottomColor: C.border,
   },
   promptCard: {
     borderWidth: 1,
-    borderColor: CT.hairline,
+    borderColor: C.hairline,
     borderRadius: 16,
     padding: 16,
-    backgroundColor: CT.surface,
+    backgroundColor: C.surface,
   },
   promptAnswer: {
     ...serif(20),
-    color: CT.ink90,
+    color: C.ink90,
     marginTop: 10,
     minHeight: 44,
     textAlignVertical: 'top',

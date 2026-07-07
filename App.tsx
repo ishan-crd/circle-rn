@@ -5,12 +5,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { CT, fontsToLoad } from './src/theme';
+import { fontsToLoad, ThemeProvider, useTheme, useAppearance } from './src/theme';
 import { useStore } from './src/store';
 import { RootView } from './src/RootView';
 import { AnimatedSplash } from './src/components/AnimatedSplash';
 
-export default function App() {
+function Root() {
+  const C = useTheme();
+  const { scheme } = useAppearance();
   const [fontsLoaded] = useFonts(fontsToLoad);
   const [splashDone, setSplashDone] = useState(false);
   const bootstrap = useStore((s) => s.bootstrap);
@@ -18,12 +20,22 @@ export default function App() {
   useEffect(() => { bootstrap(); }, [bootstrap]);
 
   return (
+    <>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      {fontsLoaded ? <RootView /> : <View style={{ flex: 1, backgroundColor: C.paper }} />}
+      {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
+    </>
+  );
+}
+
+export default function App() {
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        {fontsLoaded ? <RootView /> : <View style={{ flex: 1, backgroundColor: CT.paper }} />}
-        {!splashDone && <AnimatedSplash onFinish={() => setSplashDone(true)} />}
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <Root />
+        </SafeAreaProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

@@ -5,11 +5,13 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SmoothSheet } from 'insyd-bottom-sheet';
-import { CT, serif, grotesk } from '../theme';
+import { serif, grotesk, useTheme, Palette } from '../theme';
 import { Text, PillButton, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
 
 export function LikeComposer() {
+  const C = useTheme();
+  const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const pendingLike = useStore((s) => s.pendingLike);
   const confirmLike = useStore((s) => s.confirmLike);
@@ -28,8 +30,8 @@ export function LikeComposer() {
     <SmoothSheet
       isVisible={!!pendingLike}
       onDismiss={cancelLike}
-      backgroundColor={CT.paper}
-      handleColor={CT.border}
+      backgroundColor={C.paper}
+      handleColor={C.border}
       backdropColor="rgba(0,0,0,0.32)"
       borderRadius={30}
       minHeightFraction={0.42}
@@ -41,7 +43,7 @@ export function LikeComposer() {
             <ProfilePhoto uri={photo} seed={member.portrait} style={styles.avatar} />
             <View style={{ flex: 1 }}>
               <Text style={serif(24)}>Say hi to {member.name}</Text>
-              <Text style={[grotesk(12.5), { color: CT.muted, marginTop: 3 }]}>
+              <Text style={[grotesk(12.5), { color: C.muted, marginTop: 3 }]}>
                 Add a note — they’ll see it when you match.
               </Text>
             </View>
@@ -49,7 +51,7 @@ export function LikeComposer() {
 
           <TextInput
             placeholder="Write something warm… (optional)"
-            placeholderTextColor={CT.faint}
+            placeholderTextColor={C.faint}
             value={note}
             onChangeText={setNote}
             multiline
@@ -68,13 +70,13 @@ export function LikeComposer() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Palette) => StyleSheet.create({
   body: { paddingHorizontal: 24, paddingTop: 4 },
   header: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   avatar: { width: 52, height: 60, borderRadius: 12 },
   input: {
-    marginTop: 18, padding: 14, minHeight: 54, backgroundColor: CT.surface,
-    borderRadius: 16, borderWidth: 1, borderColor: CT.border,
-    ...serif(18), color: CT.ink,
+    marginTop: 18, padding: 14, minHeight: 54, backgroundColor: C.surface,
+    borderRadius: 16, borderWidth: 1, borderColor: C.border,
+    ...serif(18), color: C.ink,
   },
 });
