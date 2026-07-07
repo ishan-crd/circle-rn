@@ -2,10 +2,14 @@
 // A ten-step introduction builder. Progress, validation and persistence live in
 // the store (useStore); this file is purely presentation.
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TextInput,
 } from 'react-native';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withTiming, Easing,
+  SlideInRight, SlideOutLeft, SlideInLeft, SlideOutRight,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { CT, serif, serifItalic, grotesk } from '../theme';
@@ -340,6 +344,8 @@ const STEP_RENDER: Record<OnboardingStep, () => React.ReactElement> = {
   review: ReviewStep,
 };
 
+const SLIDE_MS = 420;
+
 export function Onboarding() {
   const insets = useSafeAreaInsets();
   const keyboardUp = useKeyboardVisible();
@@ -357,33 +363,57 @@ export function Onboarding() {
   const buttonLabel = step === 'welcome' ? 'Begin' : step === 'review' ? 'Enter Circle' : 'Continue';
   const pad = (n: number) => String(n).padStart(2, '0');
 
+  // Direction of the last navigation: forward slides in from the right, back
+  // from the left. Set just before the step changes so the entering/exiting
+  // step uses the right direction.
+  const [dir, setDir] = useState(1);
+  const goNext = () => { setDir(1); nextStep(); };
+  const goPrev = () => { setDir(-1); prevStep(); };
+
+  // Progress bar fills smoothly (not instantly) as the step changes.
+  const trackW = useSharedValue(0);
+  const frac = useSharedValue((stepIndex + 1) / total);
+  useEffect(() => {
+    frac.value = withTiming((stepIndex + 1) / total, {
+      duration: SLIDE_MS, easing: Easing.out(Easing.cubic),
+    });
+  }, [stepIndex, total]);
+  const fillStyle = useAnimatedStyle(() => ({ width: trackW.value * frac.value }));
+
+  const entering = (dir >= 0 ? SlideInRight : SlideInLeft).duration(SLIDE_MS).easing(Easing.out(Easing.cubic));
+  const exiting = (dir >= 0 ? SlideOutLeft : SlideOutRight).duration(SLIDE_MS).easing(Easing.out(Easing.cubic));
+
   return (
     <KeyboardAvoidingView style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header: progress */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {stepIndex > 0 ? (
-          <Pressed scale={0.9} onPress={prevStep}>
+          <Pressed scale={0.9} onPress={goPrev}>
             <Text style={{ fontSize: 20, color: CT.ink }}>‹</Text>
           </Pressed>
         ) : null}
-        <View style={styles.track}>
-          <View style={[styles.fill, { width: `${((stepIndex + 1) / total) * 100}%` }]} />
+        <View style={styles.track} onLayout={(e) => { trackW.value = e.nativeEvent.layout.width; }}>
+          <Animated.View style={[styles.fill, fillStyle]} />
         </View>
         <Text style={[grotesk(10), { color: CT.muted, letterSpacing: 1.8 }]}>
           {pad(stepIndex + 1)} / {pad(total)}
         </Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 26, paddingBottom: 24 }}
-        keyboardShouldPersistTaps="handled">
-        <StepView />
-      </ScrollView>
+      <View style={{ flex: 1, overflow: 'hidden' }}>
+        <ScrollView showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 26, paddingBottom: 24 }}
+          keyboardShouldPersistTaps="handled">
+          <Animated.View key={stepIndex} entering={entering} exiting={exiting}>
+            <StepView />
+          </Animated.View>
+        </ScrollView>
+      </View>
 
       {/* Footer: primary action */}
       <View style={[styles.footer, { paddingBottom: keyboardUp ? 8 : insets.bottom + 12 }]}>
-        <PillButton title={buttonLabel} style="filled" enabled={enabled} onPress={nextStep} />
+        <PillButton title={buttonLabel} style="filled" enabled={enabled} onPress={goNext} />
       </View>
     </KeyboardAvoidingView>
   );
