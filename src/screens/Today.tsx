@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { CT, serif, grotesk, eyebrow } from '../theme';
-import { Text, LogoMark, ProfilePhoto, TagPill, ChoiceChip, PillButton } from '../components/ui';
+import { Text, ProfilePhoto, TagPill, ChoiceChip, PillButton } from '../components/ui';
 import { useStore, exploreCandidates, sharedInterests, myTopics } from '../store';
 import { Member } from '../types';
 

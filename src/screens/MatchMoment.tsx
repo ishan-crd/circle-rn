@@ -12,7 +12,6 @@ import { Member } from '../types';
 
 export function MatchMoment({ member }: { member: Member }) {
   const insets = useSafeAreaInsets();
-  const profile = useStore((s) => s.profile);
   const theirPhoto = useStore((s) => s.memberPhotos[member.id]?.[0]);
   const messageMatch = useStore((s) => s.messageMatch);
   const dismissMatch = useStore((s) => s.dismissMatch);
@@ -21,11 +20,9 @@ export function MatchMoment({ member }: { member: Member }) {
   useEffect(() => { t.value = withSpring(1, { damping: 12 }); }, []);
 
   const fade = useAnimatedStyle(() => ({ opacity: t.value }));
-  const leftCard = useAnimatedStyle(() => ({
-    transform: [{ scale: 0.7 + 0.3 * t.value }, { rotate: `${-6 * t.value}deg` }],
-  }));
-  const rightCard = useAnimatedStyle(() => ({
-    transform: [{ scale: 0.7 + 0.3 * t.value }, { rotate: `${6 * t.value}deg` }],
+  const card = useAnimatedStyle(() => ({
+    opacity: t.value,
+    transform: [{ scale: 0.8 + 0.2 * t.value }],
   }));
 
   return (
@@ -41,10 +38,7 @@ export function MatchMoment({ member }: { member: Member }) {
         </Animated.View>
 
         <View style={styles.portraits}>
-          <Animated.View style={[styles.cardWrap, { zIndex: 1 }, leftCard]}>
-            <ProfilePhoto uri={profile.photos.find((p) => p) ?? undefined} seed={{ lx: 50, ly: 16 }} style={styles.card} />
-          </Animated.View>
-          <Animated.View style={[styles.cardWrap, { marginLeft: -26 }, rightCard]}>
+          <Animated.View style={card}>
             <ProfilePhoto uri={theirPhoto} seed={member.portrait} style={styles.card} />
           </Animated.View>
         </View>
@@ -66,10 +60,9 @@ function Eyebrowish({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 },
-  portraits: { flexDirection: 'row', marginTop: 40 },
-  cardWrap: {},
+  portraits: { marginTop: 40, alignItems: 'center' },
   card: {
-    width: 150, height: 190, borderRadius: 22, borderWidth: 4, borderColor: CT.paper,
+    width: 210, height: 270, borderRadius: 24, borderWidth: 4, borderColor: CT.paper,
   },
   actions: { position: 'absolute', left: 30, right: 30, bottom: 40, gap: 12 },
 });

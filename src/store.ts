@@ -53,6 +53,11 @@ interface State {
   pendingPushToken: string | null;
   realtimeChannel: any;
 
+  // Conversation ids the user has opened (or started by matching) — used to
+  // decide the unread dot in Messages. A match the other person hasn't opened
+  // shows as unread even before any message is sent.
+  readConvos: string[];
+
   // Photo slots the user changed locally; uploaded on save. base64 by slot for
   // slots that hold a newly picked local image.
   dirtyPhotoSlots: number[];
@@ -170,6 +175,7 @@ export const useStore = create<Store>((set, get) => ({
   activeSheet: null,
   pendingPushToken: null,
   realtimeChannel: null,
+  readConvos: [],
   dirtyPhotoSlots: [],
   photoBase64: {},
 
@@ -293,11 +299,15 @@ export const useStore = create<Store>((set, get) => ({
         }
         matchIDs[otherId] = match.id;
         const msgs = await Service.fetchMessages(match.id);
+        const last = msgs.length ? msgs[msgs.length - 1] : null;
+        // Unread until the user opens it: a brand-new match with no messages, or
+        // one whose latest message came from the other person.
+        const unread = !get().readConvos.includes(otherId) && (!last || last.sender_id !== uid);
         convos[otherId] = {
           id: otherId,
-          preview: msgs.length ? msgs[msgs.length - 1].body : '',
-          time: displayTime(msgs.length ? msgs[msgs.length - 1].created_at : match.created_at),
-          unread: false,
+          preview: last ? last.body : '',
+          time: displayTime(last ? last.created_at : match.created_at),
+          unread,
           messages: msgs.map((m) => ({ id: m.id, text: m.body, fromMe: m.sender_id === uid, at: m.created_at })),
         };
         order.push(otherId);
@@ -308,7 +318,7 @@ export const useStore = create<Store>((set, get) => ({
   startRealtime() {
     if (get().realtimeChannel) return;
     const channel = supabase
-      .channel('messages-inserts')
+      .channel('circle-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const row: any = payload.new;
         const uid = await Service.currentUserId();
@@ -321,11 +331,22 @@ export const useStore = create<Store>((set, get) => ({
         const c = convos[memberId];
         if (c) {
           c.messages = [...c.messages, { id: row.id, text: row.body, fromMe: false, at: row.created_at }];
-          c.preview = row.body; c.time = 'now';
+          c.preview = row.body; c.time = 'now'; c.unread = true;
           convos[memberId] = { ...c };
           const order = [memberId, ...get().conversationOrder.filter((x) => x !== memberId)];
-          set({ conversations: convos, conversationOrder: order });
+          // A new message means it's unread again.
+          set({ conversations: convos, conversationOrder: order, readConvos: get().readConvos.filter((x) => x !== memberId) });
         }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, async (payload) => {
+        const row: any = payload.new;
+        const uid = await Service.currentUserId();
+        if (row.user_a !== uid && row.user_b !== uid) return;
+        const otherId = row.user_a === uid ? row.user_b : row.user_a;
+        // Already known (e.g. we initiated this match) — leave it as-is.
+        if (get().matchIDs[otherId]) return;
+        // The other person matched us: surface the new conversation as unread.
+        await get().refreshConversations();
       })
       .subscribe();
     set({ realtimeChannel: channel });
@@ -421,6 +442,9 @@ export const useStore = create<Store>((set, get) => ({
     Service.actOnProfile(id, 'like', greeting).then(async (result) => {
       set({ likesRemaining: result.likes_remaining });
       if (result.matched) {
+        // We initiated this match, so it isn't "unread" for us — the other
+        // person is the one who should see it pop up unread.
+        set({ readConvos: [...get().readConvos, id] });
         await get().refreshConversations();
         const m = get().knownMembers[id];
         if (m) set({ matchedMember: m });
@@ -443,7 +467,13 @@ export const useStore = create<Store>((set, get) => ({
 
   // ---- sheets + chat ----
   openProfile(id) { set({ activeSheet: { type: 'profile', id } }); },
-  openChat(id) { set({ activeSheet: { type: 'chat', id } }); },
+  openChat(id) {
+    // Mark read: clear the unread dot and remember it's been opened.
+    const convos = { ...get().conversations };
+    if (convos[id]) convos[id] = { ...convos[id], unread: false };
+    const readConvos = get().readConvos.includes(id) ? get().readConvos : [...get().readConvos, id];
+    set({ activeSheet: { type: 'chat', id }, conversations: convos, readConvos });
+  },
   closeSheet() { set({ activeSheet: null }); },
   send(text, id) {
     const matchId = get().matchIDs[id];
@@ -471,7 +501,7 @@ export const useStore = create<Store>((set, get) => ({
       stage: 'auth', profile: emptyProfile(), onboardingStep: 0, feed: [], knownMembers: {},
       memberPhotos: {}, passedIDs: [], likedIDs: [], invitations: [], conversations: {},
       conversationOrder: [], matchIDs: {}, exploreTopics: [], activeSheet: null, tab: 'today',
-      matchedMember: null, pendingLike: null, realtimeChannel: null,
+      matchedMember: null, pendingLike: null, realtimeChannel: null, readConvos: [],
     });
   },
   deleteAccount() {
