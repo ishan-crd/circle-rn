@@ -17,6 +17,9 @@ export function Today() {
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const state = useStore();
+  // Bind the action directly — referencing `state.passMember` inside the worklet
+  // below would force the whole store to be cloned to the UI thread and crash.
+  const passMember = useStore((s) => s.passMember);
   const candidates = exploreCandidates(state);
   const candidate = candidates[0];
 
@@ -30,7 +33,7 @@ export function Today() {
     tx.value = withTiming(-640, { duration: 320 });
     rot.value = withTiming(-15, { duration: 320 }, (done) => {
       if (done) {
-        runOnJS(state.passMember)(id);
+        runOnJS(passMember)(id);
         tx.value = 0; rot.value = 0;
       }
     });
