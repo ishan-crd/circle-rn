@@ -24,7 +24,9 @@ const END_BORDER = 2;
 
 export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
   const { width, height } = useWindowDimensions();
-  const maxDiameter = Math.max(width, height) * 2.8;
+  // Just past the screen's diagonal so the ring reaches the corners exactly at
+  // the end of the grow — no blank hold after it has already left the screen.
+  const maxDiameter = Math.hypot(width, height) * 1.3;
 
   const intro = useSharedValue(0);   // 0 → 1 initial fade-in of the ring
   const grow = useSharedValue(0);    // 0 → 1 expansion
