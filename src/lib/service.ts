@@ -133,6 +133,15 @@ export const Service = {
     await supabase.from('profile_photos').insert({ profile_id: uid, position, storage_path: path });
     return path;
   },
+  async deletePhoto(position: number) {
+    const uid = await this.currentUserId();
+    if (!uid) return;
+    const { data } = await supabase.from('profile_photos')
+      .select('storage_path').eq('profile_id', uid).eq('position', position);
+    const paths = ((data as { storage_path: string }[]) ?? []).map((r) => r.storage_path);
+    if (paths.length) await supabase.storage.from('photos').remove(paths);
+    await supabase.from('profile_photos').delete().eq('profile_id', uid).eq('position', position);
+  },
   async deleteAllOwnPhotos() {
     const uid = await this.currentUserId();
     if (!uid) return;

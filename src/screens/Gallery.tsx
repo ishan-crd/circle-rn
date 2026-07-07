@@ -4,6 +4,7 @@
 import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CT, serif, serifItalic, grotesk } from '../theme';
 import { Text, Eyebrow, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
@@ -11,9 +12,11 @@ import { Member } from '../types';
 
 export function Gallery() {
   const s = useStore();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <ScrollView showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }]}>
       <Eyebrow tracking={2.6} style={{ paddingTop: 18, paddingBottom: 4 }}>THE GALLERY</Eyebrow>
       <Text style={serif(33)}>Curated for you</Text>
       <Text style={[grotesk(14), styles.subtitle]}>
@@ -64,7 +67,7 @@ function GalleryCard({ member, uri, onPress }: { member: Member; uri?: string; o
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 22, paddingBottom: 110, paddingTop: 8 },
+  content: { paddingHorizontal: 22 },
   subtitle: { color: CT.bodyLight, maxWidth: 280, marginTop: 4, marginBottom: 24, lineHeight: 20 },
   empty: { alignItems: 'center', paddingTop: 80 },
   card: {

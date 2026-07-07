@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CT, serif, grotesk } from '../theme';
 import { Text, Eyebrow, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore, memberOf } from '../store';
@@ -10,9 +11,11 @@ import { Member, Conversation } from '../types';
 
 export function Messages() {
   const s = useStore();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <ScrollView showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }]}>
       <Eyebrow tracking={2.6} style={{ paddingTop: 18, paddingBottom: 4 }}>MESSAGES</Eyebrow>
       <Text style={[serif(33), { marginBottom: 22 }]}>Conversations</Text>
 
@@ -71,7 +74,7 @@ function ConversationRow({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 22, paddingBottom: 110, paddingTop: 8 },
+  content: { paddingHorizontal: 22 },
   empty: { alignItems: 'center', paddingTop: 80 },
   row: {
     flexDirection: 'row',

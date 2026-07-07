@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { CT, serif, grotesk, eyebrow } from '../theme';
@@ -10,6 +11,7 @@ import { useStore } from '../store';
 import { Member } from '../types';
 
 export function MatchMoment({ member }: { member: Member }) {
+  const insets = useSafeAreaInsets();
   const profile = useStore((s) => s.profile);
   const theirPhoto = useStore((s) => s.memberPhotos[member.id]?.[0]);
   const messageMatch = useStore((s) => s.messageMatch);
@@ -48,7 +50,7 @@ export function MatchMoment({ member }: { member: Member }) {
         </View>
       </View>
 
-      <Animated.View style={[styles.actions, fade]}>
+      <Animated.View style={[styles.actions, { bottom: insets.bottom + 24 }, fade]}>
         <PillButton title="Send a message" onPress={messageMatch} />
         <Pressable onPress={dismissMatch} style={{ paddingVertical: 12, alignItems: 'center' }}>
           <Text style={[grotesk(14, 'medium'), { color: CT.muted }]}>Keep exploring</Text>

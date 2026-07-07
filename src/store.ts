@@ -52,6 +52,11 @@ interface State {
 
   pendingPushToken: string | null;
   realtimeChannel: any;
+
+  // Photo slots the user changed locally; uploaded on save. base64 by slot for
+  // slots that hold a newly picked local image.
+  dirtyPhotoSlots: number[];
+  photoBase64: Record<number, string>;
 }
 
 interface Actions {
@@ -72,6 +77,8 @@ interface Actions {
   startRealtime(): void;
   // onboarding + profile
   patchProfile(patch: Partial<UserProfile>): void;
+  setPhoto(index: number, uri: string, base64: string): void;
+  removePhoto(index: number): void;
   toggleInterest(label: string): void;
   setPrompt(index: number, promptId: string, answer: string): void;
   canAdvance(step: OnboardingStep): boolean;
@@ -163,6 +170,8 @@ export const useStore = create<Store>((set, get) => ({
   activeSheet: null,
   pendingPushToken: null,
   realtimeChannel: null,
+  dirtyPhotoSlots: [],
+  photoBase64: {},
 
   // ---- bootstrap / routing ----
   async bootstrap() {
@@ -324,6 +333,29 @@ export const useStore = create<Store>((set, get) => ({
 
   // ---- onboarding + profile ----
   patchProfile(patch) { set({ profile: { ...get().profile, ...patch } }); },
+  setPhoto(index, uri, base64) {
+    const photos = [...get().profile.photos];
+    photos[index] = uri;
+    const dirty = get().dirtyPhotoSlots.includes(index)
+      ? get().dirtyPhotoSlots : [...get().dirtyPhotoSlots, index];
+    set({
+      profile: { ...get().profile, photos },
+      photoBase64: { ...get().photoBase64, [index]: base64 },
+      dirtyPhotoSlots: dirty,
+    });
+  },
+  removePhoto(index) {
+    const photos = [...get().profile.photos];
+    photos[index] = null;
+    const { [index]: _dropped, ...restBase64 } = get().photoBase64;
+    const dirty = get().dirtyPhotoSlots.includes(index)
+      ? get().dirtyPhotoSlots : [...get().dirtyPhotoSlots, index];
+    set({
+      profile: { ...get().profile, photos },
+      photoBase64: restBase64,
+      dirtyPhotoSlots: dirty,
+    });
+  },
   toggleInterest(label) {
     const p = get().profile;
     const has = p.interests.includes(label);
@@ -340,7 +372,7 @@ export const useStore = create<Store>((set, get) => ({
     switch (step) {
       case 'name': return p.name.trim().length > 0;
       case 'birthday': return isValidBirthday(p);
-      case 'photos': return p.photos.some((x) => x != null);
+      case 'photos': return p.photos.filter((x) => x != null).length >= 2;
       case 'about': return p.pronouns.length > 0 && p.seeking.length > 0;
       case 'city': return p.city.trim().length > 0;
       case 'work': return p.work.trim().length > 0;
@@ -566,13 +598,14 @@ async function pushProfile(set: any, get: () => Store, markComplete: boolean) {
     await Service.upsertOwnProfile(row);
     await Service.replaceOwnInterests(p.interests.map(slugify));
     await Service.replaceOwnPrompts(p.prompts.filter((r) => r.answer.trim()).map((r) => ({ promptId: r.promptId, answer: r.answer })));
-    // Upload any local (file://) photos.
-    for (let i = 0; i < p.photos.length; i++) {
-      const uri = p.photos[i];
-      if (uri && uri.startsWith('file://')) {
-        // caller is expected to have provided base64 via patch; skipped here.
-      }
+    // Upload/delete only the slots the user changed since the last save.
+    const base64 = get().photoBase64;
+    for (const slot of [...get().dirtyPhotoSlots].sort((a, b) => a - b)) {
+      const data = base64[slot];
+      if (data) await Service.uploadPhoto(data, slot);
+      else await Service.deletePhoto(slot);
     }
+    set({ dirtyPhotoSlots: [], photoBase64: {} });
   } catch {}
 }
 

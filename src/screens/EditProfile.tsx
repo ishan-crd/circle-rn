@@ -4,11 +4,11 @@
 import React, { useState } from 'react';
 import { View, ScrollView, TextInput, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import { CT, serif, grotesk, eyebrow } from '../theme';
-import { Text, Pressed, ProfilePhoto, ChoiceChip, UnderlineField } from '../components/ui';
+import { Text, ChoiceChip, UnderlineField } from '../components/ui';
+import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, interestLabels } from '../store';
-import { PRONOUNS, SEEKING, seedFor } from '../data';
+import { PRONOUNS, SEEKING } from '../data';
 import { MAX_PROMPTS } from '../types';
 
 export function EditProfile() {
@@ -100,57 +100,6 @@ export function EditProfile() {
           ))}
         </View>
       </ScrollView>
-    </View>
-  );
-}
-
-// ---- Photo grid ------------------------------------------------------------
-
-function PhotoGrid() {
-  const s = useStore();
-  const photos = s.profile.photos;
-
-  const pick = async (index: number) => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: true,
-      aspect: [3, 4],
-      quality: 0.85,
-    });
-    if (!res.canceled && res.assets[0]) {
-      const next = [...photos];
-      next[index] = res.assets[0].uri;
-      s.patchProfile({ photos: next });
-    }
-  };
-
-  const clear = (index: number) => {
-    const next = [...photos];
-    next[index] = null;
-    s.patchProfile({ photos: next });
-  };
-
-  return (
-    <View style={styles.grid}>
-      {Array.from({ length: 6 }).map((_, i) => {
-        const uri = photos[i];
-        return (
-          <Pressed key={i} scale={0.97} onPress={() => pick(i)} style={styles.slot}>
-            {uri ? (
-              <>
-                <ProfilePhoto uri={uri} seed={seedFor(String(i))} style={StyleSheet.absoluteFill} />
-                <Pressable onPress={() => clear(i)} hitSlop={8} style={styles.slotRemove}>
-                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>✕</Text>
-                </Pressable>
-              </>
-            ) : (
-              <View style={styles.slotEmpty}>
-                <Text style={{ fontSize: 26, color: CT.faint }}>＋</Text>
-              </View>
-            )}
-          </Pressed>
-        );
-      })}
     </View>
   );
 }
@@ -248,26 +197,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: CT.border,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  slot: {
-    width: '31.5%',
-    aspectRatio: 3 / 4,
-    borderRadius: 14,
-    overflow: 'hidden',
-    backgroundColor: CT.photoEmpty,
-  },
-  slotEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: CT.border, borderRadius: 14 },
-  slotRemove: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   promptCard: {
     borderWidth: 1,

@@ -2,13 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
+import { useKeyboardVisible } from '../lib/useKeyboard';
 import { CT, serif, grotesk } from '../theme';
 import { Text, PillButton, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
 import { Member } from '../types';
 
 export function LikeComposer({ member }: { member: Member }) {
+  const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardVisible();
   const photo = useStore((s) => s.memberPhotos[member.id]?.[0]);
   const confirmLike = useStore((s) => s.confirmLike);
   const cancelLike = useStore((s) => s.cancelLike);
@@ -25,7 +29,7 @@ export function LikeComposer({ member }: { member: Member }) {
         <Pressable style={StyleSheet.absoluteFill} onPress={cancelLike} />
       </Animated.View>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.bottom}>
-        <Animated.View style={[styles.card, sheet]}>
+        <Animated.View style={[styles.card, { paddingBottom: keyboardUp ? 14 : insets.bottom + 20 }, sheet]}>
           <View style={styles.grabber} />
           <View style={styles.header}>
             <ProfilePhoto uri={photo} seed={member.portrait} style={styles.avatar} />

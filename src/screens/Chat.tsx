@@ -9,11 +9,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CT, grotesk, serif } from '../theme';
 import { Text, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
+import { useKeyboardVisible } from '../lib/useKeyboard';
 import { ChatMessage } from '../types';
 
 export function Chat({ memberId }: { memberId: string }) {
   const s = useStore();
   const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardVisible();
   const member = s.knownMembers[memberId];
   const convo = s.conversations[memberId];
   const messages = convo?.messages ?? [];
@@ -68,7 +70,7 @@ export function Chat({ memberId }: { memberId: string }) {
       </ScrollView>
 
       {/* Composer */}
-      <View style={[styles.composer, { paddingBottom: insets.bottom + 12 }]}>
+      <View style={[styles.composer, { paddingBottom: keyboardUp ? 8 : insets.bottom + 12 }]}>
         <TextInput
           value={draft}
           onChangeText={setDraft}

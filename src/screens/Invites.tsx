@@ -4,6 +4,7 @@
 import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CT, serif, serifItalic, grotesk } from '../theme';
 import { Text, Eyebrow, Pressed, ProfilePhoto } from '../components/ui';
 import { useStore, memberOf } from '../store';
@@ -11,9 +12,11 @@ import { Member, Invitation } from '../types';
 
 export function Invites() {
   const s = useStore();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <ScrollView showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 96 }]}>
       <Eyebrow tracking={2.6} style={{ paddingTop: 18, paddingBottom: 4 }}>INVITATIONS</Eyebrow>
       <Text style={serif(33)}>They liked you</Text>
       <Text style={[grotesk(14), styles.subtitle]}>
@@ -81,7 +84,7 @@ function InviteRow({
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 22, paddingBottom: 110, paddingTop: 8 },
+  content: { paddingHorizontal: 22 },
   subtitle: { color: CT.bodyLight, maxWidth: 282, marginTop: 4, marginBottom: 26, lineHeight: 20 },
   empty: { alignItems: 'center', paddingTop: 70 },
   row: {

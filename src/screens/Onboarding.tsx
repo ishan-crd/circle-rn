@@ -6,11 +6,13 @@ import React, { useState } from 'react';
 import {
   View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TextInput,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardVisible } from '../lib/useKeyboard';
 import { CT, serif, serifItalic, grotesk } from '../theme';
 import {
   Text, Eyebrow, PillButton, UnderlineField, ChoiceChip, ProfilePhoto, Pressed,
 } from '../components/ui';
+import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, ONBOARDING_STEPS, interestLabels, OnboardingStep } from '../store';
 import { PRONOUNS, SEEKING, seedFor } from '../data';
 import { UserProfile, ageFrom, birthdayIssue, MAX_PROMPTS } from '../types';
@@ -119,48 +121,6 @@ function BirthdayStep() {
   );
 }
 
-function PhotoSlot({ index }: { index: number }) {
-  const uri = useStore((s) => s.profile.photos[index]);
-  const photos = useStore((s) => s.profile.photos);
-  const patch = useStore((s) => s.patchProfile);
-
-  async function pick() {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], quality: 0.8, base64: true,
-    });
-    if (!res.canceled && res.assets[0]) {
-      const next = [...photos];
-      next[index] = res.assets[0].uri;
-      patch({ photos: next });
-    }
-  }
-
-  function remove() {
-    const next = [...photos];
-    next[index] = null;
-    patch({ photos: next });
-  }
-
-  return (
-    <View style={styles.slot}>
-      <Pressed scale={0.97} onPress={pick} style={{ flex: 1 }}>
-        {uri ? (
-          <ProfilePhoto uri={uri} seed={ME_SEED} style={styles.slotInner} />
-        ) : (
-          <View style={[styles.slotInner, styles.slotEmpty]}>
-            <Text style={{ fontSize: 24, color: CT.muted }}>+</Text>
-          </View>
-        )}
-      </Pressed>
-      {uri ? (
-        <Pressed scale={0.9} onPress={remove} style={styles.removeBtn}>
-          <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>✕</Text>
-        </Pressed>
-      ) : null}
-    </View>
-  );
-}
-
 function PhotosStep() {
   const filled = useStore((s) => s.profile.photos.filter((x) => x != null).length);
   const hint = filled >= 2 ? `${filled} added`
@@ -169,8 +129,8 @@ function PhotosStep() {
     <View>
       <StepHeading title="Show your world."
         subtitle="Add at least two. The best photographs say something true — not just a good angle." />
-      <View style={styles.grid}>
-        {Array.from({ length: 6 }, (_, i) => <PhotoSlot key={i} index={i} />)}
+      <View style={{ marginTop: 28 }}>
+        <PhotoGrid />
       </View>
       <Text style={[grotesk(12), { color: CT.muted, textAlign: 'center', marginTop: 16 }]}>{hint}</Text>
     </View>
@@ -381,6 +341,8 @@ const STEP_RENDER: Record<OnboardingStep, () => React.ReactElement> = {
 };
 
 export function Onboarding() {
+  const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardVisible();
   const stepIndex = useStore((s) => s.onboardingStep);
   const nextStep = useStore((s) => s.nextStep);
   const prevStep = useStore((s) => s.prevStep);
@@ -399,7 +361,7 @@ export function Onboarding() {
     <KeyboardAvoidingView style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {/* Header: progress */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         {stepIndex > 0 ? (
           <Pressed scale={0.9} onPress={prevStep}>
             <Text style={{ fontSize: 20, color: CT.ink }}>‹</Text>
@@ -420,7 +382,7 @@ export function Onboarding() {
       </ScrollView>
 
       {/* Footer: primary action */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: keyboardUp ? 8 : insets.bottom + 12 }]}>
         <PillButton title={buttonLabel} style="filled" enabled={enabled} onPress={nextStep} />
       </View>
     </KeyboardAvoidingView>
@@ -433,24 +395,13 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: CT.paper },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingHorizontal: 26, paddingTop: 8, height: 30,
+    paddingHorizontal: 26, paddingBottom: 8,
   },
   track: { flex: 1, height: 2, borderRadius: 1, backgroundColor: CT.fill, overflow: 'hidden' },
   fill: { height: 2, borderRadius: 1, backgroundColor: CT.ink },
   footer: {
     paddingHorizontal: 26, paddingTop: 14, paddingBottom: 12,
     borderTopWidth: 1, borderTopColor: CT.hairlineSoft,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 28 },
-  slot: { width: '31.5%', aspectRatio: 3 / 4 },
-  slotInner: { flex: 1, borderRadius: 16, backgroundColor: CT.photoEmpty },
-  slotEmpty: {
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: CT.border, borderStyle: 'dashed',
-  },
-  removeBtn: {
-    position: 'absolute', top: 7, right: 7, width: 24, height: 24, borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center',
   },
   flow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   bioField: {

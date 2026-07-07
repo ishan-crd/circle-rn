@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CT, serif, grotesk, eyebrow } from '../theme';
 import { Text, PillButton, LogoMark } from '../components/ui';
 import { useStore } from '../store';
+import { useKeyboardVisible } from '../lib/useKeyboard';
 import { supabase } from '../lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -99,6 +100,7 @@ function ProviderButton({ icon, label, onPress }: { icon: React.ReactNode; label
 
 function EmailSheet({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardVisible();
   const sendEmailCode = useStore((s) => s.sendEmailCode);
   const verifyEmailCode = useStore((s) => s.verifyEmailCode);
   const authBusy = useStore((s) => s.authBusy);
@@ -113,7 +115,7 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
       <Pressable style={{ flex: 1 }} onPress={onClose} />
-      <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+      <View style={[styles.sheet, { paddingBottom: keyboardUp ? 12 : insets.bottom + 20 }]}>
         <View style={styles.sheetHead}>
           <Text style={serif(30)}>{sent ? 'Enter the code' : 'Your email'}</Text>
           <Pressable onPress={onClose} style={styles.close}>
