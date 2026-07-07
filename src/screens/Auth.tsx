@@ -6,7 +6,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CT, serif, grotesk, eyebrow } from '../theme';
+import { CT, serif, grotesk } from '../theme';
 import { Text, PillButton, LogoMark } from '../components/ui';
 import { useStore } from '../store';
 import { useKeyboardVisible } from '../lib/useKeyboard';

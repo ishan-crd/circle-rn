@@ -8,7 +8,7 @@ import { Service, FeedRow, ProfileRow } from './lib/service';
 import { INTERESTS, PROMPTS, promptText, seedFor, slugify } from './data';
 import {
   AppStage, MainTab, Member, UserProfile, Conversation, Invitation,
-  emptyProfile, ageFrom, isValidBirthday, DAILY_LIKES, MAX_PROMPTS,
+  emptyProfile, isValidBirthday, DAILY_LIKES,
 } from './types';
 
 export const ONBOARDING_STEPS = [

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Pressable, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { CT, serif, grotesk } from '../theme';
 import { Text, PillButton, ProfilePhoto } from '../components/ui';

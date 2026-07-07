@@ -18,7 +18,7 @@ import {
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, ONBOARDING_STEPS, interestLabels, OnboardingStep } from '../store';
 import { PRONOUNS, seedFor } from '../data';
-import { UserProfile, ageFrom, birthdayIssue, MAX_PROMPTS } from '../types';
+import { ageFrom, birthdayIssue, MAX_PROMPTS } from '../types';
 
 const ME_SEED = seedFor('me');
 

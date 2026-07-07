@@ -1,6 +1,6 @@
 // Own profile + settings — mirrors ProfileView.swift.
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +17,6 @@ export function Profile() {
   const age = ageFrom(p);
   const meta = [p.work, p.city, p.pronouns].filter(Boolean).join(' · ') || 'Add your details';
   const firstPhoto = p.photos.find((x) => x) ?? undefined;
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}

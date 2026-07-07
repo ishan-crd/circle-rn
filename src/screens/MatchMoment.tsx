@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { CT, serif, grotesk, eyebrow } from '../theme';
 import { Text, PillButton, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
