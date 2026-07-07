@@ -210,7 +210,13 @@ export const useStore = create<Store>((set, get) => ({
   async sendEmailCode(email) {
     set({ authBusy: true, authError: null });
     try { await Service.sendEmailOTP(email); return true; }
-    catch (e: any) { const m = friendlyAuthError(e); if (m) set({ authError: m }); return false; }
+    catch (e: any) {
+      // Re-requesting a code for the same email while the previous one is still
+      // within Supabase's send cooldown throws a rate-limit error — but that
+      // earlier code is still valid. Advance to the code step instead of erroring.
+      if (isSendCooldown(e)) return true;
+      const m = friendlyAuthError(e); if (m) set({ authError: m }); return false;
+    }
     finally { set({ authBusy: false }); }
   },
   async verifyEmailCode(email, code) {
@@ -568,6 +574,15 @@ async function pushProfile(set: any, get: () => Store, markComplete: boolean) {
       }
     }
   } catch {}
+}
+
+/** True when Supabase refused a resend because a code was just sent (still valid). */
+function isSendCooldown(error: any): boolean {
+  const text = (error?.message ?? String(error)).toLowerCase();
+  const code = String(error?.code ?? '').toLowerCase();
+  if (error?.status === 429) return true;
+  if (code.includes('rate_limit') || code.includes('over_email_send')) return true;
+  return text.includes('security purposes') || (text.includes('seconds') && text.includes('request'));
 }
 
 function friendlyAuthError(error: any): string | null {
