@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView, GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
-import { Text, Pressed, ProfilePhoto, TagPill } from '../components/ui';
+import { Text, ProfilePhoto, TagPill } from '../components/ui';
 import { useStore, sharedInterests } from '../store';
 
 export function ProfileDetail({ memberId }: { memberId: string }) {
@@ -78,13 +78,6 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
                   {member.role} · {member.city}
                 </Text>
               </View>
-              <Pressable
-                onPress={close}
-                hitSlop={8}
-                style={[styles.closeBtn, { top: insets.top + 12 }]}
-              >
-                <Ionicons name="chevron-back" size={22} color="#fff" />
-              </Pressable>
             </View>
 
             {/* Details — all photos interleaved with every detail, like Today */}
@@ -133,27 +126,31 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
             </View>
           </ScrollView>
 
+          {/* Fixed back button — stays put while the content scrolls */}
+          <Pressable onPress={close} hitSlop={8} style={[styles.closeBtn, { top: insets.top + 12 }]}>
+            <Ionicons name="chevron-back" size={22} color="#fff" />
+          </Pressable>
+
           {/* Action bar — Unmatch once matched, otherwise Pass + Say Hi */}
           <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
             {matched ? (
-              <Pressed scale={0.98} onPress={confirmUnmatch} style={styles.unmatch}>
+              <Pressable onPress={confirmUnmatch} style={({ pressed }) => [styles.unmatch, pressed && { opacity: 0.85 }]}>
                 <Ionicons name="close" size={20} color={C.ink} />
                 <Text style={[grotesk(14, 'semibold'), { color: C.ink, letterSpacing: 0.5 }]}>Unmatch</Text>
-              </Pressed>
+              </Pressable>
             ) : (
               <>
-                <Pressed scale={0.94} onPress={pass} style={styles.passCircle}>
+                <Pressable onPress={pass} style={({ pressed }) => [styles.passCircle, pressed && { opacity: 0.7 }]}>
                   <Ionicons name="close" size={26} color={C.ink70} />
-                </Pressed>
-                <Pressed
-                  scale={0.97}
+                </Pressable>
+                <Pressable
                   onPress={like}
                   disabled={disabled}
-                  style={[styles.sayHi, { opacity: disabled ? 0.4 : 1 }]}
+                  style={({ pressed }) => [styles.sayHi, { opacity: disabled ? 0.4 : pressed ? 0.9 : 1 }]}
                 >
                   <Ionicons name="heart" size={18} color={C.accentInk} />
                   <Text style={[grotesk(15, 'semibold'), { color: C.accentInk, letterSpacing: 0.5 }]}>Say Hi</Text>
-                </Pressed>
+                </Pressable>
               </>
             )}
           </View>
@@ -187,10 +184,11 @@ const makeStyles = (C: Palette) => StyleSheet.create({
   closeBtn: {
     position: 'absolute',
     left: 22,
+    zIndex: 10,
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(0,0,0,0.28)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
   },
