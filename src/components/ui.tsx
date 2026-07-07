@@ -5,12 +5,12 @@
 import React from 'react';
 import {
   Text as RNText, TextProps, View, Pressable, StyleSheet, TextStyle, ViewStyle,
-  ActivityIndicator, StyleProp, TextInput, KeyboardTypeOptions,
+  ActivityIndicator, StyleProp, TextInput as RNTextInput, TextInputProps, KeyboardTypeOptions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { serif, grotesk, eyebrow, Fonts, useTheme } from '../theme';
+import { serif, grotesk, eyebrow, Fonts, useTheme, useAppearance } from '../theme';
 import { PortraitSeed } from '../types';
 
 // ---- Text ------------------------------------------------------------------
@@ -18,6 +18,15 @@ import { PortraitSeed } from '../types';
 export const Text = ({ style, ...p }: TextProps) => {
   const C = useTheme();
   return <RNText {...p} allowFontScaling={false} style={[{ color: C.ink }, style]} />;
+};
+
+// ---- TextInput -------------------------------------------------------------
+// Themed input: the iOS keyboard follows the app's resolved scheme (so it goes
+// dark in dark mode even when the app overrides the device theme).
+
+export const TextInput = (p: TextInputProps) => {
+  const { scheme } = useAppearance();
+  return <RNTextInput keyboardAppearance={scheme} {...p} />;
 };
 
 export function Eyebrow({ children, color, tracking, style }: {

@@ -2,11 +2,11 @@
 // up when you like someone. Mirrors LikeComposer.swift.
 
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SmoothSheet } from 'insyd-bottom-sheet';
 import { serif, grotesk, useTheme, Palette } from '../theme';
-import { Text, PillButton, ProfilePhoto } from '../components/ui';
+import { Text, PillButton, ProfilePhoto, TextInput } from '../components/ui';
 import { useStore } from '../store';
 
 export function LikeComposer() {

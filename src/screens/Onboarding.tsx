@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TextInput,
+  View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing,
@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { serif, serifItalic, grotesk, useTheme, type Palette } from '../theme';
 import {
-  Text, Eyebrow, PillButton, UnderlineField, ChoiceChip, ProfilePhoto, Pressed,
+  Text, Eyebrow, PillButton, UnderlineField, ChoiceChip, ProfilePhoto, Pressed, TextInput,
 } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, ONBOARDING_STEPS, interestLabels, OnboardingStep } from '../store';

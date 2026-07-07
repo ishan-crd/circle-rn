@@ -2,10 +2,10 @@
 // Mirrors coterie-ios/Circle/Views/Sheets/EditProfileView.swift.
 
 import React, { useState } from 'react';
-import { View, ScrollView, TextInput, StyleSheet, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
-import { Text, ChoiceChip, UnderlineField } from '../components/ui';
+import { Text, ChoiceChip, UnderlineField, TextInput } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, interestLabels } from '../store';
 import { PRONOUNS } from '../data';

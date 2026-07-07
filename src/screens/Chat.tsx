@@ -3,11 +3,11 @@
 
 import React, { useRef, useState } from 'react';
 import {
-  View, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet,
+  View, ScrollView, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { grotesk, serif, useTheme, Palette } from '../theme';
-import { Text, Pressed, ProfilePhoto } from '../components/ui';
+import { Text, Pressed, ProfilePhoto, TextInput } from '../components/ui';
 import { useStore } from '../store';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { ChatMessage } from '../types';

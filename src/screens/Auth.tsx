@@ -1,13 +1,13 @@
 // The doorway — mirrors AuthView.swift. Apple / Google / email OTP.
 
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, useTheme, Palette } from '../theme';
-import { Text, PillButton, LogoMark } from '../components/ui';
+import { Text, PillButton, LogoMark, TextInput } from '../components/ui';
 import { useStore } from '../store';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { supabase } from '../lib/supabase';
