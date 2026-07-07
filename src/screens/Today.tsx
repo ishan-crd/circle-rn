@@ -183,7 +183,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
     position: 'absolute', left: 30, right: 30, bottom: 0, flexDirection: 'row', justifyContent: 'space-between',
   },
   circle: { width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center' },
-  circleOutline: { backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: 1, borderColor: C.border },
+  circleOutline: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong },
   circleFilled: { backgroundColor: C.accent },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22 },
 });
