@@ -17,7 +17,6 @@ import { EditProfile } from './screens/EditProfile';
 export function RootView() {
   const stage = useStore((s) => s.stage);
   const matched = useStore((s) => s.matchedMember);
-  const pendingLike = useStore((s) => s.pendingLike);
   const sheet = useStore((s) => s.activeSheet);
   const closeSheet = useStore((s) => s.closeSheet);
 
@@ -32,8 +31,8 @@ export function RootView() {
       {stage === 'onboarding' && <Onboarding />}
       {stage === 'app' && <MainTabs />}
 
-      {/* Like composer overlay */}
-      {pendingLike && <LikeComposer member={pendingLike} />}
+      {/* Like composer bottom sheet (controls its own visibility) */}
+      <LikeComposer />
 
       {/* Match celebration overlay */}
       {matched && <MatchMoment member={matched} />}
