@@ -2,13 +2,12 @@
 // A ten-step introduction builder. Progress, validation and persistence live in
 // the store (useStore); this file is purely presentation.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TextInput,
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, Easing,
-  SlideInRight, SlideOutLeft, SlideInLeft, SlideOutRight,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardVisible } from '../lib/useKeyboard';
@@ -363,12 +362,27 @@ export function Onboarding() {
   const buttonLabel = step === 'welcome' ? 'Begin' : step === 'review' ? 'Enter Circle' : 'Continue';
   const pad = (n: number) => String(n).padStart(2, '0');
 
-  // Direction of the last navigation: forward slides in from the right, back
-  // from the left. Set just before the step changes so the entering/exiting
-  // step uses the right direction.
-  const [dir, setDir] = useState(1);
-  const goNext = () => { setDir(1); nextStep(); };
-  const goPrev = () => { setDir(-1); prevStep(); };
+  // Direction of the last navigation: forward = slide in from the right, back
+  // from the left. Set just before the step changes. Stored in a ref so the
+  // slide effect reads the latest value without re-subscribing.
+  const dirRef = useRef(1);
+  const goNext = () => { dirRef.current = 1; nextStep(); };
+  const goPrev = () => { dirRef.current = -1; prevStep(); };
+
+  // Content slide — driven manually (no Reanimated layout clones, which can
+  // linger as invisible touch-blocking overlays on the New Architecture). Only
+  // the current step is rendered; it slides + fades in on each change.
+  const tx = useSharedValue(0);
+  const op = useSharedValue(1);
+  useEffect(() => {
+    tx.value = dirRef.current * 90;
+    op.value = 0;
+    tx.value = withTiming(0, { duration: SLIDE_MS, easing: Easing.out(Easing.cubic) });
+    op.value = withTiming(1, { duration: SLIDE_MS, easing: Easing.out(Easing.cubic) });
+  }, [stepIndex]);
+  const slideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tx.value }], opacity: op.value,
+  }));
 
   // Progress bar fills smoothly (not instantly) as the step changes.
   const trackW = useSharedValue(0);
@@ -379,9 +393,6 @@ export function Onboarding() {
     });
   }, [stepIndex, total]);
   const fillStyle = useAnimatedStyle(() => ({ width: trackW.value * frac.value }));
-
-  const entering = (dir >= 0 ? SlideInRight : SlideInLeft).duration(SLIDE_MS).easing(Easing.out(Easing.cubic));
-  const exiting = (dir >= 0 ? SlideOutLeft : SlideOutRight).duration(SLIDE_MS).easing(Easing.out(Easing.cubic));
 
   return (
     <KeyboardAvoidingView style={styles.root}
@@ -405,7 +416,7 @@ export function Onboarding() {
         <ScrollView showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 26, paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled">
-          <Animated.View key={stepIndex} entering={entering} exiting={exiting}>
+          <Animated.View style={slideStyle}>
             <StepView />
           </Animated.View>
         </ScrollView>

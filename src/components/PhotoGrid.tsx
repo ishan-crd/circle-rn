@@ -9,10 +9,22 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, LayoutChangeEvent } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { encode } from 'base64-arraybuffer';
 import { CT } from '../theme';
 import { Text, ProfilePhoto } from './ui';
 import { useStore } from '../store';
 import { seedFor } from '../data';
+
+/** Fallback for the rare case ImagePicker returns no base64 (reads the file URI). */
+async function fetchBase64(uri: string): Promise<string | null> {
+  try {
+    const res = await fetch(uri);
+    const buf = await res.arrayBuffer();
+    return encode(buf);
+  } catch {
+    return null;
+  }
+}
 
 const COLS = 3;
 const GAP = 10;
@@ -29,15 +41,26 @@ export function PhotoGrid() {
   const slotH = Math.round(slotW * (4 / 3));
 
   const pick = async (index: number) => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [3, 4],
-      quality: 0.72,
-      base64: true,
-    });
-    const asset = !res.canceled ? res.assets[0] : undefined;
-    if (asset?.base64) setPhoto(index, asset.uri, asset.base64);
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        console.warn('[PhotoGrid] media library permission not granted', perm.status);
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [3, 4],
+        quality: 0.72,
+        base64: true,
+      });
+      if (res.canceled) return;
+      const asset = res.assets[0];
+      const base64 = asset.base64 ?? (await fetchBase64(asset.uri));
+      if (base64) setPhoto(index, asset.uri, base64);
+    } catch (e) {
+      console.warn('[PhotoGrid] pick failed', e);
+    }
   };
 
   return (
