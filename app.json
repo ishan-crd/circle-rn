@@ -1,25 +1,44 @@
 {
   "expo": {
-    "name": "circle-reactnative",
-    "slug": "circle-reactnative",
+    "name": "Circle",
+    "slug": "circle",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "circlein",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.circlein.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Circle uses your photos so you can add them to your profile.",
+        "NSLocationWhenInUseUsageDescription": "Circle uses your location to set where you're based and help you find people nearby."
+      }
     },
     "android": {
+      "package": "com.circlein.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
+        "backgroundColor": "#E0674A",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-image",
+      "expo-font",
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Circle uses your photos so you can add them to your profile."
+        }
+      ],
+      "expo-web-browser"
+    ]
   }
 }
