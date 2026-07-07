@@ -41,7 +41,6 @@ export interface UserProfile {
   dobY: string;
   photos: (string | null)[]; // local URIs or remote URLs; 6 slots
   pronouns: string;
-  seeking: string;
   city: string;
   work: string;
   bio: string;
@@ -56,7 +55,6 @@ export const emptyProfile = (): UserProfile => ({
   dobY: '',
   photos: [null, null, null, null, null, null],
   pronouns: '',
-  seeking: '',
   city: '',
   work: '',
   bio: '',

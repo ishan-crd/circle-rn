@@ -12,7 +12,6 @@ export interface ProfileRow {
   name: string;
   birthdate: string | null;
   pronouns: string | null;
-  seeking: string | null;
   city: string | null;
   work: string | null;
   bio: string;

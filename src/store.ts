@@ -373,7 +373,7 @@ export const useStore = create<Store>((set, get) => ({
       case 'name': return p.name.trim().length > 0;
       case 'birthday': return isValidBirthday(p);
       case 'photos': return p.photos.filter((x) => x != null).length >= 2;
-      case 'about': return p.pronouns.length > 0 && p.seeking.length > 0;
+      case 'about': return p.pronouns.length > 0;
       case 'city': return p.city.trim().length > 0;
       case 'work': return p.work.trim().length > 0;
       case 'prompt': return p.prompts.some((r) => r.answer.trim().length > 0);
@@ -524,7 +524,6 @@ function applyProfileRow(set: any, get: () => Store, row: ProfileRow) {
   const p = { ...get().profile };
   p.name = row.name;
   p.pronouns = row.pronouns ?? '';
-  p.seeking = row.seeking ?? '';
   p.city = row.city ?? '';
   p.work = row.work ?? '';
   p.bio = row.bio ?? '';
@@ -585,7 +584,6 @@ async function pushProfile(set: any, get: () => Store, markComplete: boolean) {
     id: uid, name: p.name,
     birthdate,
     pronouns: p.pronouns || null,
-    seeking: p.seeking || null,
     city: p.city || null,
     work: p.work || null,
     bio: p.bio.trim(),

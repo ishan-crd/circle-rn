@@ -17,7 +17,7 @@ import {
 } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, ONBOARDING_STEPS, interestLabels, OnboardingStep } from '../store';
-import { PRONOUNS, SEEKING, seedFor } from '../data';
+import { PRONOUNS, seedFor } from '../data';
 import { UserProfile, ageFrom, birthdayIssue, MAX_PROMPTS } from '../types';
 
 const ME_SEED = seedFor('me');
@@ -163,8 +163,6 @@ function AboutStep() {
       <StepHeading title="Tell us who you are." />
       <ChipGroup label="I am" options={PRONOUNS} selected={profile.pronouns}
         onSelect={(v) => patch({ pronouns: v })} />
-      <ChipGroup label="Interested in meeting" options={SEEKING} selected={profile.seeking}
-        onSelect={(v) => patch({ seeking: v })} />
       <View style={{ gap: 14 }}>
         <Eyebrow tracking={2.2}>A little about you</Eyebrow>
         <TextInput

@@ -4,7 +4,6 @@
 import { PortraitSeed } from './types';
 
 export const PRONOUNS = ['She / Her', 'He / Him', 'They / Them'];
-export const SEEKING = ['Women', 'Men', 'Everyone'];
 
 export const PROMPTS: { id: string; q: string }[] = [
   { id: 'sunday', q: 'A perfect Sunday is…' },

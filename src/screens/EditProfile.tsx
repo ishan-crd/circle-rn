@@ -8,7 +8,7 @@ import { CT, serif, grotesk, eyebrow } from '../theme';
 import { Text, ChoiceChip, UnderlineField } from '../components/ui';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { useStore, interestLabels } from '../store';
-import { PRONOUNS, SEEKING } from '../data';
+import { PRONOUNS } from '../data';
 import { MAX_PROMPTS } from '../types';
 
 export function EditProfile() {
@@ -57,13 +57,6 @@ export function EditProfile() {
         <View style={styles.chips}>
           {PRONOUNS.map((o) => (
             <ChoiceChip key={o} label={o} selected={p.pronouns === o} onPress={() => s.patchProfile({ pronouns: o })} />
-          ))}
-        </View>
-
-        <Label top={24}>Interested in meeting</Label>
-        <View style={styles.chips}>
-          {SEEKING.map((o) => (
-            <ChoiceChip key={o} label={o} selected={p.seeking === o} onPress={() => s.patchProfile({ seeking: o })} />
           ))}
         </View>
 
