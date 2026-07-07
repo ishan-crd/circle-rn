@@ -37,7 +37,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Circle uses your photos so you can add them to your profile."
+          "photosPermission": "Circle uses your photos so you can add them to your profile.",
+          "cameraPermission": false
         }
       ],
       "expo-web-browser",
