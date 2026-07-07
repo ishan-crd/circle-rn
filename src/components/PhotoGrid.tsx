@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, LayoutChangeEvent } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CT } from '../theme';
-import { Text, ProfilePhoto, Pressed } from './ui';
+import { Text, ProfilePhoto } from './ui';
 import { useStore } from '../store';
 import { seedFor } from '../data';
 
@@ -25,8 +25,8 @@ export function PhotoGrid() {
   const [width, setWidth] = useState(0);
 
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
-  const slotW = width > 0 ? (width - GAP * (COLS - 1)) / COLS : 0;
-  const slotH = slotW * (4 / 3);
+  const slotW = width > 0 ? Math.floor((width - GAP * (COLS - 1)) / COLS) : 0;
+  const slotH = Math.round(slotW * (4 / 3));
 
   const pick = async (index: number) => {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -42,25 +42,26 @@ export function PhotoGrid() {
 
   return (
     <View style={styles.grid} onLayout={onLayout}>
-      {Array.from({ length: 6 }, (_, i) => {
+      {slotW > 0 && Array.from({ length: 6 }, (_, i) => {
         const uri = photos[i];
         return (
-          <View key={i} style={{ width: slotW || undefined, height: slotH || undefined }}>
-            {width > 0 && (
-              <Pressed scale={0.97} onPress={() => pick(i)} style={StyleSheet.absoluteFill}>
-                {uri ? (
-                  <ProfilePhoto uri={uri} seed={seedFor(String(i))} style={styles.filled} />
-                ) : (
-                  <View style={styles.empty}>
-                    <Text style={styles.plus}>+</Text>
-                  </View>
-                )}
-              </Pressed>
-            )}
+          <View key={i} style={{ width: slotW, height: slotH }}>
+            <Pressable
+              onPress={() => pick(i)}
+              style={({ pressed }) => [styles.slot, pressed && { opacity: 0.85 }]}
+            >
+              {uri ? (
+                <ProfilePhoto uri={uri} seed={seedFor(String(i))} style={styles.fill} />
+              ) : (
+                <View style={styles.empty}>
+                  <Text style={styles.plus}>+</Text>
+                </View>
+              )}
+            </Pressable>
             {uri ? (
-              <Pressed scale={0.9} onPress={() => removePhoto(i)} style={styles.remove}>
+              <Pressable onPress={() => removePhoto(i)} hitSlop={8} style={styles.remove}>
                 <Text style={styles.removeMark}>✕</Text>
-              </Pressed>
+              </Pressable>
             ) : null}
           </View>
         );
@@ -71,16 +72,16 @@ export function PhotoGrid() {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  filled: { flex: 1, borderRadius: RADIUS, backgroundColor: CT.photoEmpty },
+  slot: { flex: 1, borderRadius: RADIUS, overflow: 'hidden', backgroundColor: CT.photoEmpty },
+  fill: { flex: 1 },
   empty: {
-    flex: 1, borderRadius: RADIUS, backgroundColor: CT.photoEmpty,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: CT.border, borderStyle: 'dashed',
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    borderRadius: RADIUS, borderWidth: 1, borderColor: CT.border, borderStyle: 'dashed',
   },
-  plus: { fontSize: 20, color: CT.muted },
+  plus: { fontSize: 26, color: CT.muted, lineHeight: 30 },
   remove: {
     position: 'absolute', top: 7, right: 7, width: 24, height: 24, borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center',
   },
-  removeMark: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  removeMark: { color: '#fff', fontSize: 10, fontWeight: '700' },
 });
