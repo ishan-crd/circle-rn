@@ -176,7 +176,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
   providerIcon: { width: 20, alignItems: 'center' },
   sheet: {
     backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 26, paddingTop: 20, minHeight: 320,
+    paddingHorizontal: 26, paddingTop: 20,
   },
   sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
   close: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
