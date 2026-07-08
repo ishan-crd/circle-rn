@@ -80,7 +80,7 @@ export function Auth() {
         {authError && <Text style={[grotesk(12), { color: C.accent, textAlign: 'center', marginTop: 12 }]}>{authError}</Text>}
       </View>
 
-      <Text style={[grotesk(11), { color: C.faint, textAlign: 'center', paddingBottom: insets.bottom + 14 }]}>
+      <Text style={[grotesk(11), { color: C.faint, textAlign: 'center', lineHeight: 17, marginTop: 20, paddingBottom: insets.bottom + 16 }]}>
         By continuing you agree to our{' '}
         <Text
           onPress={() => WebBrowser.openBrowserAsync(CIRCLE_LEGAL_URL)}
