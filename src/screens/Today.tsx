@@ -80,10 +80,15 @@ export function Today() {
             </Pressable>
           </View>
         </View>
+      ) : (state.feedLoading || !state.feedLoaded) ? (
+        // Loading — until the first fetch finishes, never show "caught up".
+        <View style={styles.empty}>
+          <Text style={[serif(30), { textAlign: 'center' }]}>Finding your people…</Text>
+        </View>
       ) : (
         <View style={styles.empty}>
           <Text style={[serif(30), { textAlign: 'center' }]}>
-            {state.feedLoading ? 'Finding your people…' : state.exploreTopics.length ? 'No one new in these topics.' : 'You’re all caught up.'}
+            {state.exploreTopics.length ? 'No one new in these topics.' : 'You’re all caught up.'}
           </Text>
           <Text style={[grotesk(14.5), { color: C.bodyLight, textAlign: 'center', marginTop: 14, maxWidth: 270, lineHeight: 22 }]}>
             {state.exploreTopics.length ? 'Try removing a topic, or come back later as more people join.'

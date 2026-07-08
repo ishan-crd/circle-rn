@@ -27,6 +27,7 @@ interface State {
 
   feed: Member[];
   feedLoading: boolean;
+  feedLoaded: boolean; // true once the feed has been fetched at least once
   passedIDs: string[];
   likedIDs: string[];
   likesRemaining: number;
@@ -156,6 +157,7 @@ export const useStore = create<Store>((set, get) => ({
   onboardingStep: 0,
   feed: [],
   feedLoading: false,
+  feedLoaded: false,
   passedIDs: [],
   likedIDs: [],
   likesRemaining: DAILY_LIKES,
@@ -264,7 +266,7 @@ export const useStore = create<Store>((set, get) => ({
       const members = await Promise.all(rows.map((r) => materialize(set, get, r)));
       set({ feed: members });
     } catch {}
-    set({ feedLoading: false });
+    set({ feedLoading: false, feedLoaded: true });
   },
   async refreshLikes() { try { set({ likesRemaining: await Service.likesRemaining() }); } catch {} },
   async refreshLikers() {
@@ -519,7 +521,7 @@ export const useStore = create<Store>((set, get) => ({
     get().realtimeChannel?.unsubscribe?.();
     (async () => { if (token) await Service.removeDeviceToken(token); await Service.signOut(); })();
     set({
-      stage: 'auth', profile: emptyProfile(), onboardingStep: 0, feed: [], knownMembers: {},
+      stage: 'auth', profile: emptyProfile(), onboardingStep: 0, feed: [], feedLoaded: false, knownMembers: {},
       memberPhotos: {}, passedIDs: [], likedIDs: [], invitations: [], conversations: {},
       conversationOrder: [], matchIDs: {}, exploreTopics: [], activeSheet: null, tab: 'today',
       matchedMember: null, pendingLike: null, realtimeChannel: null, readConvos: [],
