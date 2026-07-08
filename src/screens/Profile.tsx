@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, eyebrow, useTheme, useAppearance, type Palette } from '../theme';
 import { Text, LogoMark, ProfilePhoto, PillButton, TagPill, Pressed } from '../components/ui';
 import { useStore, promptQuestion } from '../store';
 import { ageFrom, Appearance } from '../types';
+import { CIRCLE_LEGAL_URL } from '../data';
 
 const APPEARANCE_OPTIONS: { label: string; value: Appearance }[] = [
   { label: 'System', value: 'system' },
@@ -115,7 +117,17 @@ export function Profile() {
         )}
       </Pressable>
 
-      <Text style={[grotesk(11), { color: C.fainter, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center', marginTop: 22 }]}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 26 }}>
+        <Pressable onPress={() => WebBrowser.openBrowserAsync(CIRCLE_LEGAL_URL)} hitSlop={8}>
+          <Text style={[grotesk(12), { color: C.muted }]}>Privacy Policy</Text>
+        </Pressable>
+        <Text style={[grotesk(12), { color: C.faint }]}>·</Text>
+        <Pressable onPress={() => WebBrowser.openBrowserAsync(CIRCLE_LEGAL_URL)} hitSlop={8}>
+          <Text style={[grotesk(12), { color: C.muted }]}>Terms of Use</Text>
+        </Pressable>
+      </View>
+
+      <Text style={[grotesk(11), { color: C.fainter, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center', marginTop: 16 }]}>
         Circle · Find your people
       </Text>
     </ScrollView>

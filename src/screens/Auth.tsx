@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { serif, grotesk, useTheme, Palette } from '../theme';
 import { Text, PillButton, LogoMark, TextInput } from '../components/ui';
 import { useStore } from '../store';
+import { CIRCLE_LEGAL_URL } from '../data';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { supabase } from '../lib/supabase';
 
@@ -80,7 +81,13 @@ export function Auth() {
       </View>
 
       <Text style={[grotesk(11), { color: C.faint, textAlign: 'center', paddingBottom: insets.bottom + 14 }]}>
-        By continuing you agree to our terms.
+        By continuing you agree to our{' '}
+        <Text
+          onPress={() => WebBrowser.openBrowserAsync(CIRCLE_LEGAL_URL)}
+          style={{ color: C.accent, textDecorationLine: 'underline' }}>
+          Terms &amp; Privacy Policy
+        </Text>
+        .
       </Text>
 
       <Modal visible={emailSheet} transparent animationType="slide" onRequestClose={() => setEmailSheet(false)}>

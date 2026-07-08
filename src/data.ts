@@ -3,6 +3,9 @@
 
 import { PortraitSeed } from './types';
 
+// Privacy Policy & Terms of Use (hosted on the Insyd site).
+export const CIRCLE_LEGAL_URL = 'https://insyd.in/circle';
+
 export const PRONOUNS = ['She / Her', 'He / Him', 'They / Them'];
 
 export const PROMPTS: { id: string; q: string }[] = [
