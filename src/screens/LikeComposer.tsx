@@ -8,11 +8,13 @@ import { SmoothSheet } from 'insyd-bottom-sheet';
 import { serif, grotesk, useTheme, Palette } from '../theme';
 import { Text, PillButton, ProfilePhoto, TextInput } from '../components/ui';
 import { useStore } from '../store';
+import { useKeyboardVisible } from '../lib/useKeyboard';
 
 export function LikeComposer() {
   const C = useTheme();
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
+  const keyboardUp = useKeyboardVisible();
   const pendingLike = useStore((s) => s.pendingLike);
   const confirmLike = useStore((s) => s.confirmLike);
   const cancelLike = useStore((s) => s.cancelLike);
@@ -34,8 +36,8 @@ export function LikeComposer() {
       handleColor={C.border}
       backdropColor="rgba(0,0,0,0.32)"
       borderRadius={30}
-      minHeightFraction={0.42}
-      bottomInset={insets.bottom + 16}
+      minHeightFraction={0.2}
+      bottomInset={keyboardUp ? 10 : insets.bottom + 12}
     >
       {member ? (
         <View style={styles.body}>
