@@ -10,6 +10,7 @@ import { INTERESTS, PROMPTS, promptText, seedFor, slugify } from './data';
 import {
   AppStage, MainTab, Member, UserProfile, Conversation, Invitation,
   emptyProfile, isValidBirthday, DAILY_LIKES,
+  Room, RoomRole, RoomStatus,
 } from './types';
 
 export const ONBOARDING_STEPS = [
@@ -17,13 +18,17 @@ export const ONBOARDING_STEPS = [
 ] as const;
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
-export type ActiveSheet = { type: 'profile' | 'chat' | 'edit'; id?: string } | null;
+export type ActiveSheet = { type: 'profile' | 'chat' | 'edit' | 'room' | 'roomSettings' | 'createRoom'; id?: string } | null;
 
 // In-app notification banner (foreground toasts for messages / likes / matches).
-export type BannerRoute = { kind: 'chat'; memberId: string } | { kind: 'invites' };
+export type BannerRoute =
+  | { kind: 'chat'; memberId: string }
+  | { kind: 'invites' }
+  | { kind: 'room'; roomId: string }
+  | { kind: 'rooms' };
 export interface InAppBanner {
   id: number;
-  icon: 'chatbubble' | 'heart' | 'sparkles';
+  icon: 'chatbubble' | 'heart' | 'sparkles' | 'people';
   title: string;
   subtitle: string;
   route: BannerRoute;
@@ -65,6 +70,8 @@ interface State {
   pendingPushToken: string | null;
   realtimeChannel: any;
   banner: InAppBanner | null;
+  rooms: Record<string, Room>;
+  roomOrder: string[];
 
   // Conversation ids the user has opened (or started by matching) — used to
   // decide the unread dot in Messages. A match the other person hasn't opened
@@ -125,6 +132,19 @@ interface Actions {
   showBanner(b: InAppBanner): void;
   dismissBanner(): void;
   openBanner(): void;
+  // rooms
+  refreshRooms(): Promise<void>;
+  loadRoomMessages(roomId: string): Promise<void>;
+  openRoom(roomId: string): void;
+  sendRoom(roomId: string, text: string): void;
+  createRoom(name: string, memberIds: string[]): Promise<void>;
+  respondRoomInvite(roomId: string, accept: boolean): Promise<void>;
+  inviteToRoom(roomId: string, userId: string): Promise<void>;
+  setRoomRole(roomId: string, userId: string, role: 'admin' | 'member'): Promise<void>;
+  removeRoomMember(roomId: string, userId: string): Promise<void>;
+  renameRoom(roomId: string, name: string): Promise<void>;
+  leaveRoom(roomId: string): Promise<void>;
+  deleteRoom(roomId: string): Promise<void>;
   // account
   setNotifications(v: boolean): void;
   logout(): void;
@@ -195,6 +215,8 @@ export const useStore = create<Store>((set, get) => ({
   pendingPushToken: null,
   realtimeChannel: null,
   banner: null,
+  rooms: {},
+  roomOrder: [],
   readConvos: [],
   dirtyPhotoSlots: [],
   photoBase64: {},
@@ -270,7 +292,7 @@ export const useStore = create<Store>((set, get) => ({
     } catch {}
   },
   async loadSignedInData() {
-    await Promise.all([get().refreshFeed(), get().refreshLikes(), get().refreshLikers(), get().refreshConversations()]);
+    await Promise.all([get().refreshFeed(), get().refreshLikes(), get().refreshLikers(), get().refreshConversations(), get().refreshRooms()]);
     get().startRealtime();
   },
   async refreshFeed() {
@@ -337,8 +359,10 @@ export const useStore = create<Store>((set, get) => ({
   },
   startRealtime() {
     if (get().realtimeChannel) return;
+    // Unique topic each time so a reused/stale channel can't collide (which throws
+    // "cannot add postgres_changes callbacks after subscribe()").
     const channel = supabase
-      .channel('circle-realtime')
+      .channel(`circle-realtime-${Date.now()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
         const row: any = payload.new;
         const uid = await Service.currentUserId();
@@ -384,6 +408,32 @@ export const useStore = create<Store>((set, get) => ({
         await get().refreshLikers();
         const name = get().knownMembers[row.actor_id]?.name ?? 'Someone';
         get().showBanner({ id: Date.now(), icon: 'heart', title: `${name} sent you a like`, subtitle: 'Tap to view', route: { kind: 'invites' } });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_messages' }, async (payload) => {
+        const row: any = payload.new;
+        const uid = await Service.currentUserId();
+        const room = get().rooms[row.room_id];
+        if (!room || row.sender_id === uid) return; // own messages are optimistic
+        const senderName = room.members.find((m) => m.userId === row.sender_id)?.name ?? 'Member';
+        const messages = [...room.messages, { id: row.id, text: row.body, senderId: row.sender_id, senderName, fromMe: false, at: row.created_at }];
+        const sheet = get().activeSheet;
+        const viewing = sheet?.type === 'room' && sheet.id === room.id;
+        const order = [room.id, ...get().roomOrder.filter((x) => x !== room.id)];
+        set({ rooms: { ...get().rooms, [room.id]: { ...room, messages, lastText: row.body, time: 'now', unread: !viewing } }, roomOrder: order });
+        if (!viewing) {
+          get().showBanner({ id: Date.now(), icon: 'people', title: `${senderName} · ${room.name}`, subtitle: 'Tap to open', route: { kind: 'room', roomId: room.id } });
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_members' }, async (payload) => {
+        const row: any = payload.new ?? payload.old;
+        const uid = await Service.currentUserId();
+        const knew = !!get().rooms[row?.room_id];
+        await get().refreshRooms();
+        // Notify on a brand-new invitation to me.
+        if (payload.eventType === 'INSERT' && payload.new?.user_id === uid && payload.new?.status === 'invited' && !knew) {
+          const room = get().rooms[payload.new.room_id];
+          if (room) get().showBanner({ id: Date.now(), icon: 'people', title: `Invite to ${room.name}`, subtitle: 'Tap to view', route: { kind: 'rooms' } });
+        }
       })
       .subscribe();
     set({ realtimeChannel: channel });
@@ -557,7 +607,111 @@ export const useStore = create<Store>((set, get) => ({
     if (!b) return;
     set({ banner: null });
     if (b.route.kind === 'chat') get().openChat(b.route.memberId);
+    else if (b.route.kind === 'room') get().openRoom(b.route.roomId);
+    else if (b.route.kind === 'rooms') set({ activeSheet: null, tab: 'rooms' });
     else set({ activeSheet: null, tab: 'invites' });
+  },
+
+  // ---- rooms (group chats) ----
+  async refreshRooms() {
+    try {
+      const uid = await Service.currentUserId();
+      if (!uid) return;
+      const ids = await Service.fetchMyRoomIds();
+      if (!ids.length) { set({ rooms: {}, roomOrder: [] }); return; }
+      const [roomRows, memberRows] = await Promise.all([Service.fetchRooms(ids), Service.fetchRoomMembers(ids)]);
+      const names = await Service.fetchProfileNames(Array.from(new Set(memberRows.map((m) => m.user_id))));
+      const existing = get().rooms;
+      const rooms: Record<string, Room> = {};
+      for (const r of roomRows) {
+        const mems = memberRows.filter((m) => m.room_id === r.id);
+        const mine = mems.find((m) => m.user_id === uid);
+        if (!mine) continue;
+        const prev = existing[r.id];
+        rooms[r.id] = {
+          id: r.id, name: r.name, ownerId: r.owner_id,
+          myRole: mine.role as RoomRole, myStatus: mine.status as RoomStatus,
+          invitedByName: mine.invited_by ? names[mine.invited_by] : undefined,
+          members: mems.map((m) => ({ userId: m.user_id, name: names[m.user_id] ?? 'Member', role: m.role as RoomRole, status: m.status as RoomStatus })),
+          messages: prev?.messages ?? [],
+          lastText: prev?.lastText ?? '',
+          time: prev?.time ?? '',
+          unread: prev?.unread ?? false,
+        };
+      }
+      set({ rooms, roomOrder: Object.keys(rooms) });
+    } catch {}
+  },
+  async loadRoomMessages(roomId) {
+    try {
+      const uid = await Service.currentUserId();
+      const room = get().rooms[roomId];
+      if (!room) return;
+      const rows = await Service.fetchRoomMessages(roomId);
+      const nameOf = (id: string) => room.members.find((m) => m.userId === id)?.name ?? 'Member';
+      const messages = rows.map((m) => ({
+        id: m.id, text: m.body, senderId: m.sender_id, senderName: nameOf(m.sender_id),
+        fromMe: m.sender_id === uid, at: m.created_at,
+      }));
+      const last = messages[messages.length - 1];
+      set({ rooms: { ...get().rooms, [roomId]: { ...room, messages, lastText: last?.text ?? '', time: last ? displayTime(last.at) : '', unread: false } } });
+    } catch {}
+  },
+  openRoom(roomId) {
+    const rooms = { ...get().rooms };
+    if (rooms[roomId]) rooms[roomId] = { ...rooms[roomId], unread: false };
+    set({ activeSheet: { type: 'room', id: roomId }, rooms });
+    get().loadRoomMessages(roomId);
+  },
+  sendRoom(roomId, text) {
+    const room = get().rooms[roomId];
+    if (!room || !text.trim()) return;
+    const optimistic = { id: `local-${Date.now()}`, text, senderId: 'me', senderName: 'You', fromMe: true, at: new Date().toISOString() };
+    const messages = [...room.messages, optimistic];
+    const order = [roomId, ...get().roomOrder.filter((x) => x !== roomId)];
+    set({ rooms: { ...get().rooms, [roomId]: { ...room, messages, lastText: text, time: 'now' } }, roomOrder: order });
+    Service.sendRoomMessage(roomId, text).catch(() => {});
+  },
+  async createRoom(name, memberIds) {
+    try {
+      const id = await Service.createRoom(name, memberIds);
+      await get().refreshRooms();
+      get().closeSheet();
+      if (id) get().openRoom(id);
+    } catch {}
+  },
+  async respondRoomInvite(roomId, accept) {
+    try {
+      await Service.respondRoomInvite(roomId, accept);
+      await get().refreshRooms();
+      if (accept) get().openRoom(roomId);
+    } catch {}
+  },
+  async inviteToRoom(roomId, userId) {
+    try { await Service.inviteToRoom(roomId, userId); await get().refreshRooms(); } catch {}
+  },
+  async setRoomRole(roomId, userId, role) {
+    try { await Service.setRoomRole(roomId, userId, role); await get().refreshRooms(); } catch {}
+  },
+  async removeRoomMember(roomId, userId) {
+    try { await Service.removeRoomMember(roomId, userId); await get().refreshRooms(); } catch {}
+  },
+  async renameRoom(roomId, name) {
+    try { await Service.renameRoom(roomId, name); await get().refreshRooms(); } catch {}
+  },
+  async leaveRoom(roomId) {
+    try {
+      await Service.leaveRoom(roomId);
+      const { [roomId]: _dropped, ...rooms } = get().rooms;
+      set({ rooms, roomOrder: get().roomOrder.filter((x) => x !== roomId), activeSheet: null });
+    } catch {}
+  },
+  async deleteRoom(roomId) {
+    try {
+      await Service.deleteRoom(roomId);
+      const { [roomId]: _dropped, ...rooms } = get().rooms;
+      set({ rooms, roomOrder: get().roomOrder.filter((x) => x !== roomId), activeSheet: null });
+    } catch {}
   },
 
   // ---- account ----
@@ -574,6 +728,7 @@ export const useStore = create<Store>((set, get) => ({
       memberPhotos: {}, passedIDs: [], likedIDs: [], invitations: [], conversations: {},
       conversationOrder: [], matchIDs: {}, exploreTopics: [], activeSheet: null, tab: 'today',
       matchedMember: null, pendingLike: null, realtimeChannel: null, readConvos: [], banner: null,
+      rooms: {}, roomOrder: [],
     });
   },
   deleteAccount() {
@@ -615,6 +770,11 @@ export function sharedInterests(s: Store, m: Member): string[] {
   return m.interests.filter((i) => s.profile.interests.includes(i));
 }
 export function memberOf(s: Store, id: string): Member | undefined { return s.knownMembers[id]; }
+
+/** People the current user has matched with (available to invite into rooms). */
+export function myMatches(s: Store): Member[] {
+  return Object.keys(s.matchIDs).map((id) => s.knownMembers[id]).filter(Boolean) as Member[];
+}
 export function promptQuestion(s: Store, id: string): string {
   return s.promptOptions.find(([pid]) => pid === id)?.[1] ?? promptText(id) ?? '';
 }

@@ -11,14 +11,14 @@ import { Text } from '../components/ui';
 import { useStore } from '../store';
 import { MainTab } from '../types';
 import { Today } from './Today';
-import { Gallery } from './Gallery';
+import { Rooms } from './Rooms';
 import { Invites } from './Invites';
 import { Messages } from './Messages';
 import { Profile } from './Profile';
 
 const TABS: { tab: MainTab; icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
   { tab: 'today', icon: 'sparkles-outline', label: 'Today' },
-  { tab: 'gallery', icon: 'copy-outline', label: 'Gallery' },
+  { tab: 'rooms', icon: 'people-outline', label: 'Rooms' },
   { tab: 'invites', icon: 'mail-outline', label: 'Invites' },
   { tab: 'messages', icon: 'chatbubble-outline', label: 'Messages' },
   { tab: 'profile', icon: 'person-outline', label: 'You' },
@@ -32,7 +32,7 @@ export function MainTabs() {
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <View style={{ flex: 1 }}>
         {tab === 'today' && <Today />}
-        {tab === 'gallery' && <Gallery />}
+        {tab === 'rooms' && <Rooms />}
         {tab === 'invites' && <Invites />}
         {tab === 'messages' && <Messages />}
         {tab === 'profile' && <Profile />}
@@ -50,6 +50,7 @@ function GlassTabBar() {
   const setTab = useStore.setState;
   const insets = useSafeAreaInsets();
   const invitesCount = useStore((s) => s.invitations.length);
+  const roomInvites = useStore((s) => Object.values(s.rooms).filter((r) => r.myStatus === 'invited').length);
 
   // Translucent version of the paper surface so the frosted bar matches the theme.
   const barTint = scheme === 'dark' ? 'rgba(16,15,13,0.72)' : 'rgba(251,250,248,0.72)';
@@ -64,6 +65,7 @@ function GlassTabBar() {
               <View>
                 <Ionicons name={t.icon} size={22} color={active ? C.accent : C.faint} />
                 {t.tab === 'invites' && invitesCount > 0 && <View style={styles.badge} />}
+                {t.tab === 'rooms' && roomInvites > 0 && <View style={styles.badge} />}
               </View>
               <Text style={[grotesk(9.5, 'medium'), { color: active ? C.accent : C.faint, marginTop: 3, letterSpacing: 0.4 }]}>
                 {t.label}

@@ -217,4 +217,73 @@ export const Service = {
     if (!uid) return;
     await supabase.from('reports').insert({ reporter_id: uid, reported_id: reportedId, reason });
   },
+
+  // ---- Rooms (group chats) ----
+  async fetchMyRoomIds(): Promise<string[]> {
+    const uid = await this.currentUserId();
+    if (!uid) return [];
+    const { data } = await supabase.from('room_members').select('room_id').eq('user_id', uid);
+    return (data ?? []).map((r) => r.room_id as string);
+  },
+  async fetchRooms(ids: string[]): Promise<{ id: string; name: string; owner_id: string }[]> {
+    if (!ids.length) return [];
+    const { data } = await supabase.from('rooms').select('id, name, owner_id').in('id', ids);
+    return (data as any[]) ?? [];
+  },
+  async fetchRoomMembers(ids: string[]): Promise<{ room_id: string; user_id: string; role: string; status: string; invited_by: string | null }[]> {
+    if (!ids.length) return [];
+    const { data } = await supabase.from('room_members')
+      .select('room_id, user_id, role, status, invited_by').in('room_id', ids);
+    return (data as any[]) ?? [];
+  },
+  async fetchProfileNames(ids: string[]): Promise<Record<string, string>> {
+    if (!ids.length) return {};
+    const { data } = await supabase.from('profiles').select('id, name').in('id', ids);
+    const out: Record<string, string> = {};
+    for (const r of (data as any[]) ?? []) out[r.id] = r.name;
+    return out;
+  },
+  async fetchRoomMessages(roomId: string): Promise<{ id: string; sender_id: string; body: string; created_at: string }[]> {
+    const { data } = await supabase.from('room_messages')
+      .select('id, sender_id, body, created_at').eq('room_id', roomId).order('created_at');
+    return (data as any[]) ?? [];
+  },
+  async sendRoomMessage(roomId: string, body: string) {
+    const uid = await this.currentUserId();
+    if (!uid) return;
+    await supabase.from('room_messages').insert({ room_id: roomId, sender_id: uid, body });
+  },
+  async createRoom(name: string, memberIds: string[]): Promise<string | null> {
+    const { data, error } = await supabase.rpc('create_room', { p_name: name, p_members: memberIds });
+    if (error) throw error;
+    return data as string;
+  },
+  async respondRoomInvite(roomId: string, accept: boolean) {
+    const { error } = await supabase.rpc('respond_room_invite', { p_room: roomId, p_accept: accept });
+    if (error) throw error;
+  },
+  async inviteToRoom(roomId: string, userId: string) {
+    const { error } = await supabase.rpc('invite_to_room', { p_room: roomId, p_user: userId });
+    if (error) throw error;
+  },
+  async setRoomRole(roomId: string, userId: string, role: 'admin' | 'member') {
+    const { error } = await supabase.rpc('set_room_role', { p_room: roomId, p_user: userId, p_role: role });
+    if (error) throw error;
+  },
+  async removeRoomMember(roomId: string, userId: string) {
+    const { error } = await supabase.rpc('remove_room_member', { p_room: roomId, p_user: userId });
+    if (error) throw error;
+  },
+  async renameRoom(roomId: string, name: string) {
+    const { error } = await supabase.rpc('rename_room', { p_room: roomId, p_name: name });
+    if (error) throw error;
+  },
+  async leaveRoom(roomId: string) {
+    const { error } = await supabase.rpc('leave_room', { p_room: roomId });
+    if (error) throw error;
+  },
+  async deleteRoom(roomId: string) {
+    const { error } = await supabase.rpc('delete_room', { p_room: roomId });
+    if (error) throw error;
+  },
 };

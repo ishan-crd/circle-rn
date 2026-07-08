@@ -1,8 +1,42 @@
 // Domain models — mirror coterie-ios/Circle/Models/Models.swift.
 
 export type AppStage = 'loading' | 'auth' | 'onboarding' | 'app';
-export type MainTab = 'today' | 'gallery' | 'invites' | 'messages' | 'profile';
+export type MainTab = 'today' | 'rooms' | 'invites' | 'messages' | 'profile';
 export type Appearance = 'system' | 'light' | 'dark';
+
+// ---- Rooms (group chats) ----
+export type RoomRole = 'owner' | 'admin' | 'member';
+export type RoomStatus = 'invited' | 'joined';
+
+export interface RoomMember {
+  userId: string;
+  name: string;
+  role: RoomRole;
+  status: RoomStatus;
+}
+
+export interface RoomChatMessage {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName: string;
+  fromMe: boolean;
+  at: string;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  ownerId: string;
+  myRole: RoomRole;
+  myStatus: RoomStatus;
+  invitedByName?: string;
+  members: RoomMember[];
+  messages: RoomChatMessage[];
+  lastText: string;
+  time: string;
+  unread: boolean;
+}
 
 export interface PortraitSeed {
   lx: number;

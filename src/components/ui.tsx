@@ -168,9 +168,9 @@ export function TagPill({ text }: { text: string }) {
 
 // ---- UnderlineField --------------------------------------------------------
 
-export function UnderlineField({ placeholder, value, onChangeText, fontSize = 26, keyboardType, autoCapitalize }: {
-  placeholder: string; value: string; onChangeText: (t: string) => void; fontSize?: number;
-  keyboardType?: KeyboardTypeOptions; autoCapitalize?: 'none' | 'sentences' | 'words';
+export function UnderlineField({ placeholder, value, onChangeText, onEndEditing, fontSize = 26, keyboardType, autoCapitalize }: {
+  placeholder: string; value: string; onChangeText: (t: string) => void; onEndEditing?: () => void;
+  fontSize?: number; keyboardType?: KeyboardTypeOptions; autoCapitalize?: 'none' | 'sentences' | 'words';
 }) {
   const C = useTheme();
   return (
@@ -180,6 +180,7 @@ export function UnderlineField({ placeholder, value, onChangeText, fontSize = 26
         placeholderTextColor={C.faint}
         value={value}
         onChangeText={onChangeText}
+        onEndEditing={onEndEditing}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         style={[serif(fontSize), { color: C.ink, paddingVertical: 4 }]}

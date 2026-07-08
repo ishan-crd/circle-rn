@@ -13,6 +13,9 @@ import { LikeComposer } from './screens/LikeComposer';
 import { Chat } from './screens/Chat';
 import { ProfileDetail } from './screens/ProfileDetail';
 import { EditProfile } from './screens/EditProfile';
+import { RoomChat } from './screens/RoomChat';
+import { RoomSettings } from './screens/RoomSettings';
+import { CreateRoom } from './screens/CreateRoom';
 import { BannerHost } from './components/BannerHost';
 
 export function RootView() {
@@ -50,8 +53,11 @@ export function RootView() {
           {sheet?.type === 'chat' && sheet.id && <Chat memberId={sheet.id} />}
           {sheet?.type === 'profile' && sheet.id && <ProfileDetail memberId={sheet.id} />}
           {sheet?.type === 'edit' && <EditProfile />}
-          {/* Banner over the sheet (e.g. a like arrives while you're in a chat) */}
-          {sheet?.type === 'chat' && <BannerHost />}
+          {sheet?.type === 'room' && sheet.id && <RoomChat roomId={sheet.id} />}
+          {sheet?.type === 'roomSettings' && sheet.id && <RoomSettings roomId={sheet.id} />}
+          {sheet?.type === 'createRoom' && <CreateRoom />}
+          {/* Banner over the sheet (e.g. a like arrives while you're in a chat/room) */}
+          {(sheet?.type === 'chat' || sheet?.type === 'room') && <BannerHost />}
         </View>
       </Modal>
 
