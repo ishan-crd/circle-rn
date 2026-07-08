@@ -66,6 +66,11 @@ export function Chat({ memberId }: { memberId: string }) {
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >
         <Text style={styles.friendsCaption}>YOU'RE FRIENDS ON CIRCLE</Text>
+        {messages.length === 0 && (
+          <Text style={[grotesk(14), { color: C.muted, textAlign: 'center', marginTop: 8 }]}>
+            Send a message to start talking.
+          </Text>
+        )}
         {messages.map((msg) => (
           <Bubble key={msg.id} msg={msg} />
         ))}

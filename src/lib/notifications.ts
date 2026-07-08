@@ -5,13 +5,17 @@
 import * as Notifications from 'expo-notifications';
 import { useStore } from '../store';
 
-// Show banners + play sound even when the app is open in the foreground.
+// handleNotification only runs for notifications received while the app is in
+// the FOREGROUND — suppress the banner/sound there so pushes only pop up when
+// the user is outside the app. (Background notifications are shown by the OS and
+// aren't affected by this.) Live in-app updates come through the realtime
+// subscription + unread dots instead.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldShowBanner: false,
+    shouldShowList: false,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
   }),
 });
 

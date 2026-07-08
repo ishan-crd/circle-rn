@@ -6,24 +6,21 @@ import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SmoothSheet } from 'insyd-bottom-sheet';
 import { serif, grotesk, useTheme, Palette } from '../theme';
-import { Text, PillButton, ProfilePhoto, TextInput } from '../components/ui';
+import { Text, PillButton, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
-import { useKeyboardVisible } from '../lib/useKeyboard';
 
 export function LikeComposer() {
   const C = useTheme();
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
-  const keyboardUp = useKeyboardVisible();
   const pendingLike = useStore((s) => s.pendingLike);
   const confirmLike = useStore((s) => s.confirmLike);
   const cancelLike = useStore((s) => s.cancelLike);
 
-  // Keep the last member + a fresh note while the sheet animates open/closed.
+  // Keep the last member while the sheet animates open/closed.
   const [member, setMember] = useState(pendingLike);
-  const [note, setNote] = useState('');
   useEffect(() => {
-    if (pendingLike) { setMember(pendingLike); setNote(''); }
+    if (pendingLike) setMember(pendingLike);
   }, [pendingLike]);
 
   const photo = useStore((s) => (member ? s.memberPhotos[member.id]?.[0] : undefined));
@@ -37,7 +34,7 @@ export function LikeComposer() {
       backdropColor="rgba(0,0,0,0.32)"
       borderRadius={30}
       minHeightFraction={0.2}
-      bottomInset={keyboardUp ? 10 : insets.bottom + 12}
+      bottomInset={insets.bottom + 12}
     >
       {member ? (
         <View style={styles.body}>
@@ -46,25 +43,13 @@ export function LikeComposer() {
             <View style={{ flex: 1 }}>
               <Text style={serif(24)}>Say hi to {member.name}</Text>
               <Text style={[grotesk(12.5), { color: C.muted, marginTop: 3 }]}>
-                Add a note — they’ll see it when you match.
+                If you both like each other, you’ll match and can start talking.
               </Text>
             </View>
           </View>
 
-          <TextInput
-            placeholder="Write something warm… (optional)"
-            placeholderTextColor={C.faint}
-            value={note}
-            onChangeText={setNote}
-            multiline
-            style={styles.input}
-          />
-
-          <View style={{ marginTop: 16 }}>
-            <PillButton
-              title={note.trim() ? 'Send Like & Note' : 'Send Like'}
-              onPress={() => confirmLike(note)}
-            />
+          <View style={{ marginTop: 20 }}>
+            <PillButton title="Send Like" onPress={() => confirmLike('')} />
           </View>
         </View>
       ) : null}
@@ -76,9 +61,4 @@ const makeStyles = (C: Palette) => StyleSheet.create({
   body: { paddingHorizontal: 24, paddingTop: 4 },
   header: { flexDirection: 'row', gap: 14, alignItems: 'center' },
   avatar: { width: 52, height: 60, borderRadius: 12 },
-  input: {
-    marginTop: 18, padding: 14, minHeight: 54, backgroundColor: C.surface,
-    borderRadius: 16, borderWidth: 1, borderColor: C.border,
-    ...serif(18), color: C.ink,
-  },
 });
