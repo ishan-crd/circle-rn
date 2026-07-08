@@ -11,6 +11,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, run
 import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
 import { Text, ProfilePhoto, TagPill } from '../components/ui';
 import { useStore, sharedInterests } from '../store';
+import { reportMember } from '../lib/report';
 
 export function ProfileDetail({ memberId }: { memberId: string }) {
   const C = useTheme();
@@ -123,6 +124,11 @@ export function ProfileDetail({ memberId }: { memberId: string }) {
                   </View>
                 </Block>
               )}
+
+              <Pressable onPress={() => reportMember(memberId, member.name)} hitSlop={8} style={styles.report}>
+                <Ionicons name="flag-outline" size={14} color={C.muted} />
+                <Text style={[grotesk(13, 'medium'), { color: C.muted }]}>Report {member.name}</Text>
+              </Pressable>
             </View>
           </ScrollView>
 
@@ -193,6 +199,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   details: { paddingHorizontal: 26, paddingTop: 28 },
+  report: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 44, paddingVertical: 10 },
   photoCard: { width: '100%', aspectRatio: 3 / 4, borderRadius: 22, marginTop: 22, backgroundColor: C.photoEmpty },
   block: {
     marginTop: 22,

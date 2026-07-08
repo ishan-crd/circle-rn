@@ -212,4 +212,9 @@ export const Service = {
     const { error } = await supabase.rpc('unmatch', { p_other: otherId });
     if (error) throw error;
   },
+  async reportUser(reportedId: string, reason: string) {
+    const uid = await this.currentUserId();
+    if (!uid) return;
+    await supabase.from('reports').insert({ reporter_id: uid, reported_id: reportedId, reason });
+  },
 };

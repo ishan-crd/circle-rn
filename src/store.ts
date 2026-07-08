@@ -121,6 +121,7 @@ interface Actions {
   closeSheet(): void;
   send(text: string, id: string): void;
   unmatch(id: string): Promise<void>;
+  reportUser(id: string, reason: string): void;
   showBanner(b: InAppBanner): void;
   dismissBanner(): void;
   openBanner(): void;
@@ -541,6 +542,9 @@ export const useStore = create<Store>((set, get) => ({
       readConvos: get().readConvos.filter((x) => x !== id),
     });
     try { await Service.unmatch(id); } catch {}
+  },
+  reportUser(id, reason) {
+    Service.reportUser(id, reason).catch(() => {});
   },
   showBanner(b) {
     set({ banner: b });

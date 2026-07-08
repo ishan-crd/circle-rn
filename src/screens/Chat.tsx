@@ -6,9 +6,11 @@ import {
   View, ScrollView, KeyboardAvoidingView, Platform, StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { grotesk, serif, useTheme, Palette } from '../theme';
 import { Text, Pressed, ProfilePhoto, TextInput } from '../components/ui';
 import { useStore } from '../store';
+import { reportMember } from '../lib/report';
 import { useKeyboardVisible } from '../lib/useKeyboard';
 import { ChatMessage } from '../types';
 
@@ -54,6 +56,11 @@ export function Chat({ memberId }: { memberId: string }) {
                 {member.role} · {member.city}
               </Text>
             </View>
+          </Pressed>
+        )}
+        {member && (
+          <Pressed scale={0.9} onPress={() => reportMember(memberId, member.name)} style={styles.reportBtn}>
+            <Ionicons name="flag-outline" size={18} color={C.muted} />
           </Pressed>
         )}
       </View>
@@ -129,6 +136,7 @@ const makeStyles = (C: Palette) => StyleSheet.create({
   },
   backBtn: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   headerTap: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  reportBtn: { marginLeft: 'auto', width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.photoEmpty },
   role: {
     ...grotesk(10),
