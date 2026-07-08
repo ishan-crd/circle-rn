@@ -19,6 +19,16 @@ export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
 export type ActiveSheet = { type: 'profile' | 'chat' | 'edit'; id?: string } | null;
 
+// In-app notification banner (foreground toasts for messages / likes / matches).
+export type BannerRoute = { kind: 'chat'; memberId: string } | { kind: 'invites' };
+export interface InAppBanner {
+  id: number;
+  icon: 'chatbubble' | 'heart' | 'sparkles';
+  title: string;
+  subtitle: string;
+  route: BannerRoute;
+}
+
 interface State {
   stage: AppStage;
   tab: MainTab;
@@ -54,6 +64,7 @@ interface State {
 
   pendingPushToken: string | null;
   realtimeChannel: any;
+  banner: InAppBanner | null;
 
   // Conversation ids the user has opened (or started by matching) — used to
   // decide the unread dot in Messages. A match the other person hasn't opened
@@ -110,6 +121,9 @@ interface Actions {
   closeSheet(): void;
   send(text: string, id: string): void;
   unmatch(id: string): Promise<void>;
+  showBanner(b: InAppBanner): void;
+  dismissBanner(): void;
+  openBanner(): void;
   // account
   setNotifications(v: boolean): void;
   logout(): void;
@@ -179,6 +193,7 @@ export const useStore = create<Store>((set, get) => ({
   activeSheet: null,
   pendingPushToken: null,
   realtimeChannel: null,
+  banner: null,
   readConvos: [],
   dirtyPhotoSlots: [],
   photoBase64: {},
@@ -340,6 +355,13 @@ export const useStore = create<Store>((set, get) => ({
           const order = [memberId, ...get().conversationOrder.filter((x) => x !== memberId)];
           // A new message means it's unread again.
           set({ conversations: convos, conversationOrder: order, readConvos: get().readConvos.filter((x) => x !== memberId) });
+          // In-app banner unless the user is already reading this chat.
+          const sheet = get().activeSheet;
+          const viewing = sheet?.type === 'chat' && sheet.id === memberId;
+          if (!viewing) {
+            const name = get().knownMembers[memberId]?.name ?? 'Someone';
+            get().showBanner({ id: Date.now(), icon: 'chatbubble', title: `${name} sent you a message`, subtitle: 'Tap to open', route: { kind: 'chat', memberId } });
+          }
         }
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, async (payload) => {
@@ -351,6 +373,16 @@ export const useStore = create<Store>((set, get) => ({
         if (get().matchIDs[otherId]) return;
         // The other person matched us: surface the new conversation as unread.
         await get().refreshConversations();
+        const name = get().knownMembers[otherId]?.name ?? 'Someone';
+        get().showBanner({ id: Date.now(), icon: 'sparkles', title: `You matched with ${name}!`, subtitle: 'Tap to say hello', route: { kind: 'chat', memberId: otherId } });
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'interactions' }, async (payload) => {
+        const row: any = payload.new;
+        const uid = await Service.currentUserId();
+        if (row.action !== 'like' || row.target_id !== uid) return;
+        await get().refreshLikers();
+        const name = get().knownMembers[row.actor_id]?.name ?? 'Someone';
+        get().showBanner({ id: Date.now(), icon: 'heart', title: `${name} sent you a like`, subtitle: 'Tap to view', route: { kind: 'invites' } });
       })
       .subscribe();
     set({ realtimeChannel: channel });
@@ -510,6 +542,19 @@ export const useStore = create<Store>((set, get) => ({
     });
     try { await Service.unmatch(id); } catch {}
   },
+  showBanner(b) {
+    set({ banner: b });
+    // Auto-dismiss unless replaced by a newer banner.
+    setTimeout(() => { if (get().banner?.id === b.id) set({ banner: null }); }, 4200);
+  },
+  dismissBanner() { set({ banner: null }); },
+  openBanner() {
+    const b = get().banner;
+    if (!b) return;
+    set({ banner: null });
+    if (b.route.kind === 'chat') get().openChat(b.route.memberId);
+    else set({ activeSheet: null, tab: 'invites' });
+  },
 
   // ---- account ----
   setNotifications(v) {
@@ -524,7 +569,7 @@ export const useStore = create<Store>((set, get) => ({
       stage: 'auth', profile: emptyProfile(), onboardingStep: 0, feed: [], feedLoaded: false, knownMembers: {},
       memberPhotos: {}, passedIDs: [], likedIDs: [], invitations: [], conversations: {},
       conversationOrder: [], matchIDs: {}, exploreTopics: [], activeSheet: null, tab: 'today',
-      matchedMember: null, pendingLike: null, realtimeChannel: null, readConvos: [],
+      matchedMember: null, pendingLike: null, realtimeChannel: null, readConvos: [], banner: null,
     });
   },
   deleteAccount() {

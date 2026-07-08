@@ -13,6 +13,7 @@ import { LikeComposer } from './screens/LikeComposer';
 import { Chat } from './screens/Chat';
 import { ProfileDetail } from './screens/ProfileDetail';
 import { EditProfile } from './screens/EditProfile';
+import { BannerHost } from './components/BannerHost';
 
 export function RootView() {
   const C = useTheme();
@@ -49,8 +50,13 @@ export function RootView() {
           {sheet?.type === 'chat' && sheet.id && <Chat memberId={sheet.id} />}
           {sheet?.type === 'profile' && sheet.id && <ProfileDetail memberId={sheet.id} />}
           {sheet?.type === 'edit' && <EditProfile />}
+          {/* Banner over the sheet (e.g. a like arrives while you're in a chat) */}
+          {sheet?.type === 'chat' && <BannerHost />}
         </View>
       </Modal>
+
+      {/* Banner over the tab screens */}
+      {!sheet && stage === 'app' && <BannerHost />}
     </View>
   );
 }
