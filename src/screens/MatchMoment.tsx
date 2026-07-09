@@ -5,13 +5,14 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { serif, grotesk, eyebrow, useTheme, Palette } from '../theme';
+import { serif, grotesk, eyebrow, useTheme, useAppearance, Palette } from '../theme';
 import { Text, PillButton, ProfilePhoto } from '../components/ui';
 import { useStore } from '../store';
 import { Member } from '../types';
 
 export function MatchMoment({ member }: { member: Member }) {
   const C = useTheme();
+  const { scheme } = useAppearance();
   const styles = React.useMemo(() => makeStyles(C), [C]);
   const insets = useSafeAreaInsets();
   const theirPhoto = useStore((s) => s.memberPhotos[member.id]?.[0]);
@@ -29,7 +30,7 @@ export function MatchMoment({ member }: { member: Member }) {
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <BlurView intensity={30} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={30} tint={scheme} style={StyleSheet.absoluteFill} />
       <View style={styles.center}>
         <Animated.View style={[{ alignItems: 'center' }, fade]}>
           <Eyebrowish>A NEW FRIEND</Eyebrowish>

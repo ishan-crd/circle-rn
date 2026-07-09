@@ -538,10 +538,15 @@ export const useStore = create<Store>((set, get) => ({
       if (result.matched) {
         // We initiated this match, so it isn't "unread" for us — the other
         // person is the one who should see it pop up unread.
-        set({ readConvos: [...get().readConvos, id] });
-        await get().refreshConversations();
+        // Show the celebration immediately from data we already have; don't
+        // gate it behind the conversation refresh (that network round-trip is
+        // what made the match sheet appear seconds late and glitchy).
         const m = get().knownMembers[id];
-        if (m) set({ matchedMember: m });
+        set({
+          readConvos: [...get().readConvos, id],
+          ...(m ? { matchedMember: m } : {}),
+        });
+        get().refreshConversations();
       }
     }).catch(() => {});
   },
